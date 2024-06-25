@@ -5,7 +5,7 @@ openai.api_key = OPENAI_API_KEY
 
 def invoke_openai_sql(prompt):
     response = openai.Completion.create(
-        engine="="text-davinci-003",
+        engine="text-davinci-003",
         prompt=prompt,
         max_tokens=150,
         n=1,
