@@ -4,12 +4,13 @@ from config import OPENAI_API_KEY
 openai.api_key = OPENAI_API_KEY
 
 def invoke_openai_sql(prompt):
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant, who is an expert on a given database."},
-            {"role": "user", "content": prompt}
-        ]
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        prompt=prompt,
+        max_tokens=150,
+        n=1,
+        stop=None,
+        temperature=0.5,
     )
     message_content = response.choices[0]['message']['content'].strip()
     sql_query_start = message_content.find("SELECT")
@@ -17,12 +18,13 @@ def invoke_openai_sql(prompt):
     return sql_query
 
 def invoke_openai_response(prompt):
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": prompt}
-        ]
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        prompt=prompt,
+        max_tokens=150,
+        n=1,
+        stop=None,
+        temperature=0.5,
     )
     answer = response.choices[0]['message']['content'].strip()
     return answer
