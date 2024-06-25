@@ -1,0 +1,9 @@
+# .gitignore
+secrets.toml
+
+# Ignore environment variables file
+.env
+
+# Ignore compiled Python files
+*.pyc
+__pycache__/

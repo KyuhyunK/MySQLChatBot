@@ -1,13 +1,11 @@
-import os
-from dotenv import load_dotenv
+import streamlit as st
 
-load_dotenv('.env')
+MYSQL_HOST = st.secrets["mysql"]["MYSQL_HOST"]
+MYSQL_USER = st.secrets["mysql"]["MYSQL_USER"]
+MYSQL_PASSWORD = st.secrets["mysql"]["MYSQL_PASSWORD"]
+MYSQL_DATABASE = st.secrets["mysql"]["MYSQL_DATABASE"]
+OPENAI_API_KEY = st.secrets["openai"]["OPENAI_API_KEY"]
 
-MYSQL_HOST = os.getenv("MYSQL_HOST")
-MYSQL_USER = os.getenv("MYSQL_USER")
-MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD")
-MYSQL_DATABASE = os.getenv("MYSQL_DATABASE")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 column_descriptions = {
     "id": "Unique identifier for each record",
