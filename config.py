@@ -50,5 +50,7 @@ column_descriptions = {
     "total_return_processing_fees": "Total return processing fees",
     "returned_items_cost": "Cost of returned items",
     "cost_of_return": "Cost incurred for returning items",
-    "total_referral_fees": "Total referral fees"
+    "total_referral_fees": "Total referral fees",
+    "year": "Year that data was pulled from",
+    "quarter": "Quarter that data was pulled from"
 }

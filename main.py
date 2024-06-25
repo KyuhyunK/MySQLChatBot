@@ -3,6 +3,7 @@ import plotly.express as px
 from database import get_table_columns, run_query
 from openai_utils import invoke_chain, invoke_openai_response
 from intents import intents, valid_columns
+from config import column_descriptions
 
 def determine_graph_type(user_question):
     if "line graph" in user_question.lower():
@@ -40,17 +41,17 @@ def create_plotly_graph(df, graph_type, x_col, y_col, title):
 
 st.title('AI Chat Interface for MySQL Database')
 
-st.write("Welcome to the AI Chat Interface for MySQL Database. You can ask questions about the database, and I will help you retrieve and visualize the data. Here is some context to help guide you to what you are looking for. \n") 
-st.write("Unless specified, all data is from the aggregate table (all data). If you want to access a specific quarter's data, you must specify this following this format: 'profit_data_(year)_q(1-4)'. The 'Show Table Structure' button shows the column names, so you can see what information you are working with.")
+st.write("Welcome to the AI Chat Interface for MySQL Database. You can ask questions about the database, and I will help you retrieve and visualize the data. \n")
 
 if st.button('Show Table Structure'):
     columns_df = get_table_columns()
-    st.write("Table Structure of 'aggregate_profit_data':")
-    st.write(columns_df)
-    st.write("Column Descriptions:")
-    for col in columns_df["Field"]:
-        st.write(f"**{col}**: {column_descriptions.get(col, 'No description available')}")
-
+    if columns_df.empty:
+        st.error("Failed to retrieve table structure.")
+    else:
+        st.write("Column Descriptions:")
+        for col in columns_df["Field"]:
+            st.write(f"**{col}**: {column_descriptions.get(col, 'No description available')}")
+        print("Columns DataFrame:\n", columns_df)  # Debugging: Print the DataFrame
 
 user_question = st.text_input("Enter your question about the database:")
 if st.button('Submit'):
@@ -70,8 +71,8 @@ if st.button('Submit'):
         if not df.empty:
             st.dataframe(df)
             graph_type = determine_graph_type(user_question)
-            if 'listing_state' in df.columns and 'revenue_difference' in df.columns:
-                create_plotly_graph(df, graph_type, "listing_state", "revenue_difference", "Total Revenue Difference by Listing State")
+            if 'listing_state' in df.columns and 'total_revenue' in df.columns:
+                create_plotly_graph(df, graph_type, "listing_state", "total_revenue", "Total Revenue by Listing State")
 
 st.write("Example Queries:")
 st.write("What is the total revenue by listing state?")
