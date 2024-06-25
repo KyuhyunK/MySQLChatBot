@@ -43,15 +43,10 @@ st.title('AI Chat Interface for MySQL Database')
 
 st.write("Welcome to the AI Chat Interface for MySQL Database. You can ask questions about the database, and I will help you retrieve and visualize the data. \n")
 
-if st.button('Show Table Structure'):
-    columns_df = get_table_columns()
-    if columns_df.empty:
-        st.error("Failed to retrieve table structure.")
-    else:
-        st.write("Column Descriptions:")
-        for col in columns_df["Field"]:
-            st.write(f"**{col}**: {column_descriptions.get(col, 'No description available')}")
-        print("Columns DataFrame:\n", columns_df)  # Debugging: Print the DataFrame
+if st.button('Show Column Descriptions'):
+    st.write("Column Descriptions:")
+    for col, desc in column_descriptions.items():
+        st.write(f"**{col}**: {desc}")
 
 user_question = st.text_input("Enter your question about the database:")
 if st.button('Submit'):
