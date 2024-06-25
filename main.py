@@ -47,6 +47,10 @@ if st.button('Show Table Structure'):
     columns_df = get_table_columns()
     st.write("Table Structure of 'aggregate_profit_data':")
     st.write(columns_df)
+    st.write("Column Descriptions:")
+    for col in columns_df["Field"]:
+        st.write(f"**{col}**: {column_descriptions.get(col, 'No description available')}")
+
 
 user_question = st.text_input("Enter your question about the database:")
 if st.button('Submit'):

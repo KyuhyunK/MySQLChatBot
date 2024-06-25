@@ -78,5 +78,4 @@ Here are some example queries you can try:
 Click on the "Show Table Structure" button to see the structure of the `aggregate_profit_data` table.
 
 ## Notes
-- The app assumes the default table name is `aggregate_profit_data` unless specified otherwise.
-- If accessing specific quarter's data, specify it in the format: `profit_data_(year)_q(1-4)`.
+- The app uses the default table name `aggregate_profit_data`.
