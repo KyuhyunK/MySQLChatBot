@@ -2,12 +2,27 @@ import streamlit as st
 import plotly.express as px
 from database import get_table_columns, run_query
 from intents import intents, valid_columns
-from llama_utils import generate_sql_query, invoke_chain
 import requests
+from llama_utils import load_llama_model, generate_llama_response, validate_sql_columns
+from config import LLAMA_MODEL_PATH
 
-# Load secrets from Streamlit secrets management
-rapidapi_key = st.secrets["rapidapi"]["RAPIDAPI_KEY"]
+# Load Llama model once during initialization
+tokenizer, model = load_llama_model(LLAMA_MODEL_PATH)
 
+def invoke_chain(user_question, valid_columns):
+    # Prepare the prompt for generating the SQL query
+    sql_query_prompt = f"Generate a SQL query for the following question: {user_question}. The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. Ensure the query includes the table name and the 'FROM' keyword. Use only valid columns from the following list: {', '.join(valid_columns)}. Keep your response concise and easy to understand."
+    
+    # Use the Llama model to generate the SQL query
+    generated_sql_query = generate_llama_response(sql_query_prompt, tokenizer, model)
+    print("Generated SQL Query:", generated_sql_query)
+
+    # Validate and correct the SQL query if needed
+    corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)
+
+    return corrected_sql_query
+
+# Graph structure
 def determine_graph_type(user_question):
     if "line graph" in user_question.lower():
         return "line"
