@@ -2,7 +2,7 @@ import streamlit as st
 import plotly.express as px
 from database import get_table_columns, run_query
 from intents import intents, valid_columns
-from amazonapi import get_amazon_data
+from amazonapi import invoke_amazon_api, invoke_amazon_response, invoke_chain
 import requests
 
 # Load secrets from Streamlit secrets management
@@ -66,7 +66,7 @@ if st.button('Submit'):
         if matched_intent:
             endpoint = matched_intent['endpoint']
             params = matched_intent['params']
-            data = get_amazon_data(endpoint, params)
+            data = invoke_amazon_api(endpoint, params)
             st.write("Amazon API Response:")
             st.json(data)
             # Additional processing and visualization if needed
@@ -74,7 +74,7 @@ if st.button('Submit'):
             corrected_sql_query = invoke_chain(user_question, valid_columns)
             df, result = run_query(corrected_sql_query)
             response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query."
-            response = invoke_openai_response(response_prompt)
+            response = invoke_amazon_response(response_prompt)
             st.write("Generated SQL Query:")
             st.code(corrected_sql_query)
             if not df.empty:
