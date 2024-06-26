@@ -2,7 +2,6 @@ from transformers import AutoTokenizer
 import transformers
 import torch
 
-huggingface-cli login --token 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
 
 model = "meta-llama/Llama-2-7b-chat-hf"
 
@@ -13,4 +12,3 @@ pipeline = transformers.pipeline(
 	torch_dtype=torch.float16,
 	device_map="auto",
 )
-

@@ -1,31 +1,21 @@
-import openai
-from config import OPENAI_API_KEY
+# llama_utils.py
+from transformers import AutoModelForCausalLM, AutoTokenizer
+# amazonapi.py or main.py
+from llama_utils import load_llama_model, generate_llama_response
+from config import LLAMA_MODEL_PATH
 
-openai.api_key = OPENAI_API_KEY
 
-def invoke_openai_sql(prompt):
-    response = openai.chat.completion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant, who is an expert on a given database."},
-            {"role": "user", "content": prompt}
-        ]
-    )
-    message_content = response['choices'][0]['message']['content'].strip()
-    sql_query_start = message_content.find("SELECT")
-    sql_query = message_content[sql_query_start:]
-    return sql_query
+def load_llama_model(model_path):
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    model = AutoModelForCausalLM.from_pretrained(model_path)
+    return tokenizer, model
 
-def invoke_openai_response(prompt):
-    response = openai.chat.completion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": prompt}
-        ]
-    )
-    answer = response['choices'][0]['message']['content'].strip()
-    return answer
+def generate_llama_response(prompt, tokenizer, model):
+    inputs = tokenizer(prompt, return_tensors="pt")
+    outputs = model.generate(**inputs)
+    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return response
+
 
 def validate_sql_columns(sql_query, valid_columns):
     sql_keywords = {'SELECT', 'AS', 'FROM', 'WHERE', 'GROUP', 'BY', 'ORDER', 'DESC', 'LIMIT', 'SUM', 'AVG', 'COUNT'}
@@ -38,11 +28,16 @@ def validate_sql_columns(sql_query, valid_columns):
         # Add more replacements if necessary
     return corrected_query
 
+
+
+# Load Llama model once during the initialization
+tokenizer, model = load_llama_model(LLAMA_MODEL_PATH)
+
 def invoke_chain(user_question, valid_columns):
     sql_query_prompt = f"Generate a SQL query for the following question: {user_question}. The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. Ensure the query includes the table name and the 'FROM' keyword. Use only valid columns from the following list: {', '.join(valid_columns)}. Keep your response concise and easy to understand."
-    generated_sql_query = invoke_openai_sql(sql_query_prompt)
+    
+    generated_sql_query = generate_llama_response(sql_query_prompt, tokenizer, model)
     print("Generated SQL Query:", generated_sql_query)
 
     corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)
-
     return corrected_sql_query

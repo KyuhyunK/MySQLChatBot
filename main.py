@@ -2,7 +2,7 @@ import streamlit as st
 import plotly.express as px
 from database import get_table_columns, run_query
 from intents import intents, valid_columns
-from amazonapi import invoke_amazon_api, invoke_amazon_response, invoke_chain
+from llama_utils import generate_sql_query, invoke_chain
 import requests
 
 # Load secrets from Streamlit secrets management
