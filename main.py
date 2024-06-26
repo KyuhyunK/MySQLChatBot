@@ -1,37 +1,11 @@
 import streamlit as st
 import plotly.express as px
 from database import get_table_columns, run_query
-from openai_utils import invoke_chain, invoke_openai_response
 from intents import intents, valid_columns
+from amazonapi import get_amazon_data
 import requests
 
-# Function to fetch data from the RapidAPI
-def fetch_amazon_data(seller_id, country, page):
-    url = "https://real-time-amazon-data.p.rapidapi.com/seller-products"
-    headers = {
-        "Content-Type": "application/json",
-        "X-RapidAPI-Key": st.secrets["rapidapi"]["X-RapidAPI-Key"],
-        "X-RapidAPI-Host": "real-time-amazon-data.p.rapidapi.com"
-    }
-    querystring = {"seller_id": seller_id, "country": country, "page": page}
-    response = requests.get(url, headers=headers, params=querystring)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error(f"Failed to retrieve data: {response.status_code}")
-        return None
-
-st.title('Amazon Seller Products Data')
-
-# User input for seller ID, country, and page
-seller_id = st.text_input("Enter Seller ID", value="A02211013Q5HP3OMSZC7W")
-country = st.text_input("Enter Country", value="US")
-page = st.number_input("Enter Page Number", min_value=1, value=1)
-
-if st.button('Fetch Data'):
-    data = fetch_amazon_data(seller_id, country, page)
-    if data:
-        st.write(data)
+rapidapi_key = st.secrets["rapidapi"]["RAPIDAPI_KEY"]
 
 
 def determine_graph_type(user_question):

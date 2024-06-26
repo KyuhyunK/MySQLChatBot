@@ -4,8 +4,7 @@ MYSQL_HOST = st.secrets["mysql"]["MYSQL_HOST"]
 MYSQL_USER = st.secrets["mysql"]["MYSQL_USER"]
 MYSQL_PASSWORD = st.secrets["mysql"]["MYSQL_PASSWORD"]
 MYSQL_DATABASE = st.secrets["mysql"]["MYSQL_DATABASE"]
-OPENAI_API_KEY = st.secrets["openai"]["OPENAI_API_KEY"]
-
+RAPIDAPI_KEY = st.secrets["rapidapi"]["RAPIDAPI_KEY"]
 
 column_descriptions = {
     "id": "Unique identifier for each record",

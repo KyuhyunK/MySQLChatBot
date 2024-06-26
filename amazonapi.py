@@ -1,24 +1,24 @@
 import requests
+import json
+from config import RAPIDAPI_KEY
 
-# Define the endpoint and headers
-url = "https://real-time-amazon-data.p.rapidapi.com/seller-products"
-headers = {
-    "Content-Type": "application/json",
-    "X-RapidAPI-Key": "4b717a92f9msh0b0e11879f156edp1a9798jsn699284b1432e",
-    "X-RapidAPI-Host": "real-time-amazon-data.p.rapidapi.com"
-}
+def get_amazon_data(endpoint, params):
+    url = f"https://real-time-amazon-data.p.rapidapi.com/{endpoint}"
+    headers = {
+        'x-rapidapi-host': 'real-time-amazon-data.p.rapidapi.com',
+        'x-rapidapi-key': RAPIDAPI_KEY,
+        'Content-Type': 'application/json'
+    }
+    response = requests.get(url, headers=headers, params=params)
+    return response.json()
 
-# Define the query parameters
-querystring = {"seller_id": "A02211013Q5HP3OMSZC7W", "country": "US", "page": "1"}
-
-# Make the GET request
-response = requests.get(url, headers=headers, params=querystring)
-
-# Check if the request was successful
-if response.status_code == 200:
-    data = response.json()
-    print("Data retrieved successfully")
-    print(data)
-else:
-    print(f"Failed to retrieve data: {response.status_code}")
-    print(response.json())
+# Example usage
+if __name__ == "__main__":
+    endpoint = "seller-products"
+    params = {
+        "seller_id": "A02211013Q5HP3OMSZC7W",
+        "country": "US",
+        "page": "1"
+    }
+    data = get_amazon_data(endpoint, params)
+    print(json.dumps(data, indent=4))
