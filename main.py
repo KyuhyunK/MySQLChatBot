@@ -5,8 +5,8 @@ from intents import intents, valid_columns
 from amazonapi import get_amazon_data
 import requests
 
+# Load secrets from Streamlit secrets management
 rapidapi_key = st.secrets["rapidapi"]["RAPIDAPI_KEY"]
-
 
 def determine_graph_type(user_question):
     if "line graph" in user_question.lower():
@@ -63,17 +63,25 @@ if st.button('Submit'):
                 matched_intent = intent
                 break
 
-        corrected_sql_query = invoke_chain(user_question, valid_columns)
-        df, result = run_query(corrected_sql_query)
-        response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query."
-        response = invoke_openai_response(response_prompt)
-        st.write("Generated SQL Query:")
-        st.code(corrected_sql_query)
-        if not df.empty:
-            st.dataframe(df)
-            graph_type = determine_graph_type(user_question)
-            if 'listing_state' in df.columns and 'revenue_difference' in df.columns:
-                create_plotly_graph(df, graph_type, "listing_state", "revenue_difference", "Total Revenue Difference by Listing State")
+        if matched_intent:
+            endpoint = matched_intent['endpoint']
+            params = matched_intent['params']
+            data = get_amazon_data(endpoint, params)
+            st.write("Amazon API Response:")
+            st.json(data)
+            # Additional processing and visualization if needed
+        else:
+            corrected_sql_query = invoke_chain(user_question, valid_columns)
+            df, result = run_query(corrected_sql_query)
+            response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query."
+            response = invoke_openai_response(response_prompt)
+            st.write("Generated SQL Query:")
+            st.code(corrected_sql_query)
+            if not df.empty:
+                st.dataframe(df)
+                graph_type = determine_graph_type(user_question)
+                if 'listing_state' in df.columns and 'revenue_difference' in df.columns:
+                    create_plotly_graph(df, graph_type, "listing_state", "revenue_difference", "Total Revenue Difference by Listing State")
 
 st.write("Example Queries:")
 st.write("What is the total revenue by listing state?")
