@@ -3,6 +3,8 @@ import plotly.express as px
 from database import get_table_columns, run_query
 from openai_utils import invoke_chain, invoke_openai_response
 from intents import intents, valid_columns
+import openai
+
 
 # Load OpenAI API key from secrets
 openai.api_key = st.secrets["openai"]["OPENAI_API_KEY"]
