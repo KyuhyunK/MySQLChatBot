@@ -5,7 +5,7 @@ from openai_utils import invoke_chain, invoke_openai_response
 from intents import intents, valid_columns
 
 # Load OpenAI API key from secrets
-openai.api_key = st.secrets["openai"]["api_key"]
+openai.api_key = st.secrets["openai"]["OPENAI_API_KEY"]
 
 def determine_graph_type(user_question):
     if "line graph" in user_question.lower():
