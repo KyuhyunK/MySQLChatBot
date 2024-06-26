@@ -1,4 +1,5 @@
 # llama_utils.py
+import transformers
 from transformers import AutoModelForCausalLM, AutoTokenizer
 # amazonapi.py or main.py
 from llama_utils import load_llama_model, generate_llama_response
