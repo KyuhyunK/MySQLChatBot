@@ -7,10 +7,12 @@ from llama_utils import load_llama_model, generate_llama_response, validate_sql_
 from config import LLAMA_MODEL_PATH
 
 
-print(f"Using model path: {LLAMA_MODEL_PATH}")
+@st.cache_resource
+def get_model():
+    print(f"Using model path: {LLAMA_MODEL_PATH}")
+    return load_llama_model(LLAMA_MODEL_PATH)
 
-# Load Llama model once during initialization
-tokenizer, model = load_llama_model(LLAMA_MODEL_PATH)
+tokenizer, model = get_model()
 
 def invoke_chain(user_question, valid_columns):
     # Prepare the prompt for generating the SQL query
