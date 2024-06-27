@@ -2,8 +2,12 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 def load_llama_model(model_path):
     print(f"Loading model from: {model_path}")
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
-    model = AutoModelForCausalLM.from_pretrained(model_path)
+    try:
+    tokenizer = AutoTokenizer.from_pretrained(model_path, torch_dtype=torch.float16)
+    model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float16)
+    print("Model and tokenizer loaded successfully.")
+except Exception as e:
+    print(f"Error: {e}")
     return tokenizer, model
 
 def generate_llama_response(prompt, tokenizer, model):
