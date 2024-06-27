@@ -8,6 +8,8 @@ from config import LLAMA_MODEL_PATH
 import torch
 import logging
 
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 @st.cache_resource
 def get_model():
