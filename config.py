@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 
-LLAMA_MODEL_PATH = "C:/Users/SamuelCho/Desktop/Llama/"
+LLAMA_MODEL_PATH =  "C:\\Users\\SamuelCho\\Desktop\\Llama"
 MYSQL_HOST = st.secrets["mysql"]["MYSQL_HOST"]
 MYSQL_USER = st.secrets["mysql"]["MYSQL_USER"]
 MYSQL_PASSWORD = st.secrets["mysql"]["MYSQL_PASSWORD"]
