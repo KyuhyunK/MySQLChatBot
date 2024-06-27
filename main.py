@@ -11,13 +11,24 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+model = None
+tokenizer = None
+
 @st.cache_resource
 def get_model():
-    logger.debug(f"Loading model from: {LLAMA_MODEL_PATH}")
-    tokenizer, model = load_llama_model(LLAMA_MODEL_PATH)
+    global tokenizer, model
     if tokenizer is None or model is None:
-        st.error("Failed to load model or tokenizer. Check logs for details.")
-    logger.debug("Model and tokenizer loaded successfully.")
+        logger.debug(f"Loading model from: {LLAMA_MODEL_PATH}")
+        try:
+            tokenizer, model = load_llama_model(LLAMA_MODEL_PATH)
+            if tokenizer is None or model is None:
+                st.error("Failed to load model or tokenizer. Check logs for details.")
+                logger.error("Failed to load model or tokenizer.")
+            else:
+                logger.debug("Model and tokenizer loaded successfully.")
+        except Exception as e:
+            logger.error(f"Exception occurred while loading model: {e}")
+            st.error("An error occurred while loading the model. Check logs for details.")
     return tokenizer, model
 
 tokenizer, model = get_model()
