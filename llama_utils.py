@@ -1,8 +1,6 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from huggingface_hub import login
 
-login(token="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")
-
 def load_llama_model(model_path):
     print(f"Loading model from: {model_path}")
     tokenizer = AutoTokenizer.from_pretrained(model_path)
