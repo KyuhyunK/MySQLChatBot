@@ -4,7 +4,7 @@ def load_llama_model(model_path):
     print(f"Loading model from: {model_path}")
     try:
     	tokenizer = AutoTokenizer.from_pretrained(model_path, torch_dtype=torch.float16)
-   	model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float16)
+    	model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float16)
     	print("Model and tokenizer loaded successfully.")
     except Exception as e:
     	print(f"Error: {e}")
