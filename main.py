@@ -70,45 +70,50 @@ def create_plotly_graph(df, graph_type, x_col, y_col, title):
         return
     st.plotly_chart(fig)
 
-st.title('AI Chat Interface for MySQL Database')
+# Streamlit application code
+def main():
+    st.title('AI Chat Interface for MySQL Database')
 
-st.write("Welcome to the AI Chat Interface for MySQL Database. You can ask questions about the database, and I will help you retrieve and visualize the data. \n") 
+    st.write("Welcome to the AI Chat Interface for MySQL Database. You can ask questions about the database, and I will help you retrieve and visualize the data.\n") 
 
-if st.button('Show Table Structure'):
-    columns_df = get_table_columns()
-    st.write("Table Structure of 'aggregate_profit_data':")
-    st.write(columns_df)
-    st.write("Column Descriptions:")
-    for col in columns_df["Field"]:
-        st.write(f"**{col}**: {column_descriptions.get(col, 'No description available')}")
+    if st.button('Show Table Structure'):
+        columns_df = get_table_columns()
+        st.write("Table Structure of 'aggregate_profit_data':")
+        st.write(columns_df)
+        st.write("Column Descriptions:")
+        for col in columns_df["Field"]:
+            st.write(f"**{col}**: {column_descriptions.get(col, 'No description available')}")
 
-user_question = st.text_input("Enter your question about the database:")
-if st.button('Submit'):
-    if user_question:
-        matched_intent = None
-        for intent in intents:
-            if any(pattern.lower() in user_question.lower() for pattern in intent['patterns']):
-                matched_intent = intent
-                break
+    user_question = st.text_input("Enter your question about the database:")
+    if st.button('Submit'):
+        if user_question:
+            matched_intent = None
+            for intent in intents:
+                if any(pattern.lower() in user_question.lower() for pattern in intent['patterns']):
+                    matched_intent = intent
+                    break
 
-        if matched_intent:
-            endpoint = matched_intent['endpoint']
-            params = matched_intent['params']
-            response = generate_llama_response(f"Endpoint: {endpoint}, Params: {params}", tokenizer, model)
-            st.write("Llama Model Response:")
-            st.json(response)
-        else:
-            corrected_sql_query = invoke_chain(user_question, valid_columns=[])
-            df, result = run_query(corrected_sql_query)
-            response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query."
-            response = generate_llama_response(response_prompt, tokenizer, model)
-            st.write("Generated SQL Query:")
-            st.code(corrected_sql_query)
-            if not df.empty:
-                st.dataframe(df)
-                graph_type = determine_graph_type(user_question)
-                if 'listing_state' in df.columns and 'revenue_difference' in df.columns:
-                    create_plotly_graph(df, graph_type, "listing_state", "revenue_difference", "Total Revenue Difference by Listing State")
+            if matched_intent:
+                endpoint = matched_intent['endpoint']
+                params = matched_intent['params']
+                response = generate_llama_response(f"Endpoint: {endpoint}, Params: {params}", tokenizer, model)
+                st.write("Llama Model Response:")
+                st.json(response)
+            else:
+                corrected_sql_query = invoke_chain(user_question, valid_columns=[])
+                df, result = run_query(corrected_sql_query)
+                response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query."
+                response = generate_llama_response(response_prompt, tokenizer, model)
+                st.write("Generated SQL Query:")
+                st.code(corrected_sql_query)
+                if not df.empty:
+                    st.dataframe(df)
+                    graph_type = determine_graph_type(user_question)
+                    if 'listing_state' in df.columns and 'revenue_difference' in df.columns:
+                        create_plotly_graph(df, graph_type, "listing_state", "revenue_difference", "Total Revenue Difference by Listing State")
+
+if __name__ == "__main__":
+    main()
 
 
 
