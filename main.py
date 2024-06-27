@@ -6,6 +6,9 @@ import requests
 from llama_utils import load_llama_model, generate_llama_response, validate_sql_columns
 from config import LLAMA_MODEL_PATH
 
+
+print(f"Using model path: {LLAMA_MODEL_PATH}")
+
 # Load Llama model once during initialization
 tokenizer, model = load_llama_model(LLAMA_MODEL_PATH)
 
