@@ -1,5 +1,4 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from huggingface_hub import login
 
 def load_llama_model(model_path):
     print(f"Loading model from: {model_path}")
