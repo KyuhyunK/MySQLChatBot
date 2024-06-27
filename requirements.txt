@@ -6,3 +6,4 @@ requests
 llama-index
 torch
 transformers
+logging

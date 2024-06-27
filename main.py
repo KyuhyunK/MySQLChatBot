@@ -5,12 +5,18 @@ from intents import intents, valid_columns
 import requests
 from llama_utils import load_llama_model, generate_llama_response, validate_sql_columns
 from config import LLAMA_MODEL_PATH
+import torch
+import logging
 
 
 @st.cache_resource
 def get_model():
-    print(f"Using model path: {LLAMA_MODEL_PATH}")
-    return load_llama_model(LLAMA_MODEL_PATH)
+    logger.debug(f"Loading model from: {LLAMA_MODEL_PATH}")
+    tokenizer, model = load_llama_model(LLAMA_MODEL_PATH)
+    if tokenizer is None or model is None:
+        st.error("Failed to load model or tokenizer. Check logs for details.")
+    logger.debug("Model and tokenizer loaded successfully.")
+    return tokenizer, model
 
 tokenizer, model = get_model()
 
