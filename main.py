@@ -94,11 +94,9 @@ if st.button('Submit'):
         if matched_intent:
             endpoint = matched_intent['endpoint']
             params = matched_intent['params']
-            # Since invoke_amazon_api is not defined, replace this part with Llama model response
             response = generate_llama_response(f"Endpoint: {endpoint}, Params: {params}", tokenizer, model)
             st.write("Llama Model Response:")
             st.json(response)
-            # Additional processing and visualization if needed
         else:
             corrected_sql_query = invoke_chain(user_question, valid_columns=[])
             df, result = run_query(corrected_sql_query)
@@ -112,8 +110,7 @@ if st.button('Submit'):
                 if 'listing_state' in df.columns and 'revenue_difference' in df.columns:
                     create_plotly_graph(df, graph_type, "listing_state", "revenue_difference", "Total Revenue Difference by Listing State")
 
-if __name__ == "__main__":
-    main()
+
 
 st.write("Example Queries:")
 st.write("What is the total revenue by listing state?")
