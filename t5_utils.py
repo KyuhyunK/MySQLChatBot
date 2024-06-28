@@ -1,4 +1,5 @@
 from transformers import T5Tokenizer, T5ForConditionalGeneration
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 def load_model(model_path):
     print(f"Loading model from: {model_path}")
