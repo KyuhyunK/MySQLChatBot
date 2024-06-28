@@ -1,28 +1,15 @@
-from transformers import T5Tokenizer, T5ForConditionalGeneration
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
-def load_model(model_path):
-    print(f"Loading model from: {model_path}")
-    try:
-        self.tokenizer = T5Tokenizer.from_pretrained(tokenizer_name)
-        self.model = T5ForConditionalGeneration.from_pretrained(model_name)
-        print("Model and tokenizer loaded successfully.")
-    except Exception as e:
-        print(f"Error: {e}")
-        tokenizer = None
-        model = None
+def load_model(model_name):
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
     return tokenizer, model
 
 def generate_response(prompt, tokenizer, model):
-    if tokenizer is None or model is None:
-        return "Error: Model or tokenizer not loaded properly."
-    try:
-        inputs = tokenizer(prompt, return_tensors="pt")
-        outputs = model.generate(**inputs)
-        decoded_output = tokenizer.decode(outputs[0], skip_special_tokens=True)
-        return decoded_output
-    except Exception as e:
-        return f"Error generating response: {e}"
+    inputs = tokenizer(prompt, return_tensors="pt")
+    outputs = model.generate(**inputs)
+    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return response
 
 
 def validate_sql_columns(sql_query, valid_columns):

@@ -8,8 +8,6 @@ from intents import intents, valid_columns
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from t5_utils import load_model, generate_response, validate_sql_columns
 from config import MODEL_NAME
-from database import get_table_columns, run_query
-from intents import intents, valid_columns
 
 # Function to check internet connection
 def check_internet_connection():
@@ -20,6 +18,9 @@ def check_internet_connection():
         return True
     except (requests.ConnectionError, requests.Timeout) as exception:
         return False
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Load the model and tokenizer
 @st.cache(allow_output_mutation=True)
@@ -38,71 +39,17 @@ def load_model(model_name):
 
 tokenizer, model = load_model(MODEL_NAME)
 
-# Streamlit app
-st.title("MySQL Chatbot")
-
-# User input
-user_input = st.text_input("Enter your SQL query or question:")
-
-# Generate response
-if user_input:
-    if tokenizer is not None and model is not None:
-        response = generate_response(user_input, tokenizer, model)
-        st.write(response)
-    else:
-        st.error("Model or tokenizer not loaded properly.")
-
-from t5_utils import load_model, generate_response, validate_sql_columns
-from config import MODEL_NAME
-import torch
-import logging
-
-
-# Function to check internet connection
-def check_internet_connection():
-    url = "http://www.google.com"
-    timeout = 5
-    try:
-        request = requests.get(url, timeout=timeout)
-        return True
-    except (requests.ConnectionError, requests.Timeout) as exception:
-        return False
-
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
-model = None
-tokenizer = None
-
-@st.cache(allow_output_mutation=True)
-def load_model():
-    model_name = "google/flan-t5-base"
-    try:
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
-        model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
-        return tokenizer, model
-    except Exception as e:
-        st.error(f"Error loading model or tokenizer: {e}")
-        return None, None
-
-
-tokenizer, model = load_model()
-
+# Function to invoke the chain for generating SQL query and validating it
 def invoke_chain(user_question, valid_columns):
-    # Prepare the prompt for generating the SQL query
     sql_query_prompt = f"Generate a SQL query for the following question: {user_question}. The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. Ensure the query includes the table name and the 'FROM' keyword. Use only valid columns from the following list: {', '.join(valid_columns)}. Keep your response concise and easy to understand."
     
-    # Use the model to generate the SQL query
     generated_sql_query = generate_response(sql_query_prompt, tokenizer, model)
-    print("Generated SQL Query:", generated_sql_query)
+    logger.debug(f"Generated SQL Query: {generated_sql_query}")
 
-    # Validate and correct the SQL query if needed
     corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)
-
     return corrected_sql_query
 
-# Graph structure
+# Function to determine the type of graph
 def determine_graph_type(user_question):
     if "line graph" in user_question.lower():
         return "line"
@@ -119,6 +66,7 @@ def determine_graph_type(user_question):
     else:
         return "bar"
 
+# Function to create the graph using Plotly
 def create_plotly_graph(df, graph_type, x_col, y_col, title):
     if graph_type == "bar":
         fig = px.bar(df, x=x_col, y=y_col, title=title)
@@ -181,8 +129,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
 
 st.write("Example Queries:")
 st.write("What is the total revenue by listing state?")
