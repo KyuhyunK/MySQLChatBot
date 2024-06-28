@@ -87,6 +87,7 @@ def create_plotly_graph(df, graph_type, x_col, y_col, title):
 
 # Function to test MySQL connection
 def test_mysql_connection():
+    connection = None  # Ensure connection is defined
     try:
         connection = create_mysql_connection()
         if connection.is_connected():
