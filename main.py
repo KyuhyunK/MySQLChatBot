@@ -3,11 +3,10 @@ import plotly.express as px
 import torch
 import logging
 import requests
-from database import get_table_columns, run_query
-from intents import intents, valid_columns
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from t5_utils import load_model, generate_response, validate_sql_columns
 from config import MODEL_NAME
+from database import get_table_columns, run_query, test_connection
 
 # Function to check internet connection
 def check_internet_connection():
@@ -89,7 +88,14 @@ def create_plotly_graph(df, graph_type, x_col, y_col, title):
 def main():
     st.title('AI Chat Interface for MySQL Database')
 
-    st.write("Welcome to the AI Chat Interface for MySQL Database. You can ask questions about the database, and I will help you retrieve and visualize the data.\n") 
+    st.write("Welcome to the AI Chat Interface for MySQL Database. You can ask questions about the database, and I will help you retrieve and visualize the data.\n")
+
+    # Test database connection
+    if st.button('Test Database Connection'):
+        if test_connection():
+            st.success("Connected to the database successfully!")
+        else:
+            st.error("Failed to connect to the database.")
 
     if st.button('Show Table Structure'):
         columns_df = get_table_columns()
@@ -97,7 +103,7 @@ def main():
         st.write(columns_df)
         st.write("Column Descriptions:")
         for col in columns_df["Field"]:
-            st.write(f"**{col}**: {column_descriptions.get(col, 'No description available')}")
+            st.write(f"**{col}**: No description available")
 
     user_question = st.text_input("Enter your question about the database:")
     if st.button('Submit'):

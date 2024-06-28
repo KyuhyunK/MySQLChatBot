@@ -21,7 +21,7 @@ def create_mysql_connection():
     return connection
 
 def test_connection():
-    connection = create_connection()
+    connection = create_mysql_connection()
     if connection is not None and connection.is_connected():
         connection.close()
         return True
