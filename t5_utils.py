@@ -5,12 +5,11 @@ def load_model(model_name):
     model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
     return tokenizer, model
 
-def generate_response(prompt, tokenizer, model):
+def generate_response(prompt, tokenizer, model, max_new_tokens=50):
     inputs = tokenizer(prompt, return_tensors="pt")
-    outputs = model.generate(**inputs)
+    outputs = model.generate(**inputs, max_new_tokens=max_new_tokens)
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
     return response
-
 
 def validate_sql_columns(sql_query, valid_columns):
     sql_keywords = {'SELECT', 'AS', 'FROM', 'WHERE', 'GROUP', 'BY', 'ORDER', 'DESC', 'LIMIT', 'SUM', 'AVG', 'COUNT'}

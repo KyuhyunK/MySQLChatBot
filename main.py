@@ -23,7 +23,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Load the model and tokenizer
-@st.cache(allow_output_mutation=True)
+@st.cache_resource
 def load_model(model_name):
     if not check_internet_connection():
         st.error("No internet connection. Please check your connection and try again.")
@@ -43,7 +43,7 @@ tokenizer, model = load_model(MODEL_NAME)
 def invoke_chain(user_question, valid_columns):
     sql_query_prompt = f"Generate a SQL query for the following question: {user_question}. The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. Ensure the query includes the table name and the 'FROM' keyword. Use only valid columns from the following list: {', '.join(valid_columns)}. Keep your response concise and easy to understand."
     
-    generated_sql_query = generate_response(sql_query_prompt, tokenizer, model)
+    generated_sql_query = generate_response(sql_query_prompt, tokenizer, model, max_new_tokens=50)
     logger.debug(f"Generated SQL Query: {generated_sql_query}")
 
     corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)
@@ -118,7 +118,7 @@ def main():
                 corrected_sql_query = invoke_chain(user_question, valid_columns=[])
                 df, result = run_query(corrected_sql_query)
                 response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query."
-                response = generate_response(response_prompt, tokenizer, model)
+                response = generate_response(response_prompt, tokenizer, model, max_new_tokens=50)
                 st.write("Generated SQL Query:")
                 st.code(corrected_sql_query)
                 if not df.empty:
