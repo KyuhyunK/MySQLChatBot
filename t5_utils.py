@@ -12,11 +12,17 @@ def load_model(model_path):
         model = None
     return tokenizer, model
 
-def generate_response(input_text, model, tokenizer):
-    inputs = tokenizer.encode("translate SQL to English: " + input_text, return_tensors="pt")
-    outputs = model.generate(inputs, max_length=512, num_beams=4, early_stopping=True)
-    decoded_output = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    return decoded_output
+def generate_response(prompt, tokenizer, model):
+    if tokenizer is None or model is None:
+        return "Error: Model or tokenizer not loaded properly."
+    try:
+        inputs = tokenizer(prompt, return_tensors="pt")
+        outputs = model.generate(**inputs)
+        decoded_output = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        return decoded_output
+    except Exception as e:
+        return f"Error generating response: {e}"
+
 
 def validate_sql_columns(sql_query, valid_columns):
     sql_keywords = {'SELECT', 'AS', 'FROM', 'WHERE', 'GROUP', 'BY', 'ORDER', 'DESC', 'LIMIT', 'SUM', 'AVG', 'COUNT'}
