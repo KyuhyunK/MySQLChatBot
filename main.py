@@ -3,7 +3,7 @@ import plotly.express as px
 from database import get_table_columns, run_query
 from intents import intents, valid_columns
 import requests
-from t5_utils import load_model, generate__response, validate_sql_columns
+from t5_utils import load_model, generate_response, validate_sql_columns
 from config import MODEL_NAME
 import torch
 import logging
