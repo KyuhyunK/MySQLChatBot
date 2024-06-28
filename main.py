@@ -3,8 +3,8 @@ import plotly.express as px
 from database import get_table_columns, run_query
 from intents import intents, valid_columns
 import requests
-from llama_utils import load_llama_model, generate_llama_response, validate_sql_columns
-from config import LLAMA_MODEL_PATH
+from t5_utils import load_model, generate__response, validate_sql_columns
+from config import MODEL_NAME
 import torch
 import logging
 
@@ -18,9 +18,9 @@ tokenizer = None
 def get_model():
     global tokenizer, model
     if tokenizer is None or model is None:
-        logger.debug(f"Loading model from: {LLAMA_MODEL_PATH}")
+        logger.debug(f"Loading model from: {MODEL_NAME}")
         try:
-            tokenizer, model = load_llama_model(LLAMA_MODEL_PATH)
+            tokenizer, model = load_model(MODEL_NAME)
             if tokenizer is None or model is None:
                 st.error("Failed to load model or tokenizer. Check logs for details.")
                 logger.error("Failed to load model or tokenizer.")
@@ -37,8 +37,8 @@ def invoke_chain(user_question, valid_columns):
     # Prepare the prompt for generating the SQL query
     sql_query_prompt = f"Generate a SQL query for the following question: {user_question}. The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. Ensure the query includes the table name and the 'FROM' keyword. Use only valid columns from the following list: {', '.join(valid_columns)}. Keep your response concise and easy to understand."
     
-    # Use the Llama model to generate the SQL query
-    generated_sql_query = generate_llama_response(sql_query_prompt, tokenizer, model)
+    # Use the model to generate the SQL query
+    generated_sql_query = generate_response(sql_query_prompt, tokenizer, model)
     print("Generated SQL Query:", generated_sql_query)
 
     # Validate and correct the SQL query if needed
@@ -107,14 +107,14 @@ def main():
             if matched_intent:
                 endpoint = matched_intent['endpoint']
                 params = matched_intent['params']
-                response = generate_llama_response(f"Endpoint: {endpoint}, Params: {params}", tokenizer, model)
-                st.write("Llama Model Response:")
+                response = generate_response(f"Endpoint: {endpoint}, Params: {params}", tokenizer, model)
+                st.write("Model Response:")
                 st.json(response)
             else:
                 corrected_sql_query = invoke_chain(user_question, valid_columns=[])
                 df, result = run_query(corrected_sql_query)
                 response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query."
-                response = generate_llama_response(response_prompt, tokenizer, model)
+                response = generate_response(response_prompt, tokenizer, model)
                 st.write("Generated SQL Query:")
                 st.code(corrected_sql_query)
                 if not df.empty:

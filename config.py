@@ -1,7 +1,8 @@
 import streamlit as st
 import os
 
-LLAMA_MODEL_PATH = "C:/Users/SamuelCho/Desktop/Llama"
+MODEL_NAME = "google/flan-t5-base"
+TOKENIZER_NAME = "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"
 MYSQL_HOST = st.secrets["mysql"]["MYSQL_HOST"]
 MYSQL_USER = st.secrets["mysql"]["MYSQL_USER"]
 MYSQL_PASSWORD = st.secrets["mysql"]["MYSQL_PASSWORD"]
