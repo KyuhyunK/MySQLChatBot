@@ -3,7 +3,7 @@ import plotly.express as px
 import torch
 import logging
 import requests
-from database import get_table_columns, run_query
+from database import get_table_columns, run_query, create_mysql_connection
 from intents import intents, valid_columns
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from t5_utils import load_model, generate_response, validate_sql_columns
