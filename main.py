@@ -1,8 +1,57 @@
 import streamlit as st
 import plotly.express as px
+import torch
+import logging
+import requests
 from database import get_table_columns, run_query
 from intents import intents, valid_columns
-import requests
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from t5_utils import load_model, generate_response, validate_sql_columns
+from config import MODEL_NAME
+from database import get_table_columns, run_query
+from intents import intents, valid_columns
+
+# Function to check internet connection
+def check_internet_connection():
+    url = "http://www.google.com"
+    timeout = 5
+    try:
+        request = requests.get(url, timeout=timeout)
+        return True
+    except (requests.ConnectionError, requests.Timeout) as exception:
+        return False
+
+# Load the model and tokenizer
+@st.cache(allow_output_mutation=True)
+def load_model(model_name):
+    if not check_internet_connection():
+        st.error("No internet connection. Please check your connection and try again.")
+        return None, None
+
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+        return tokenizer, model
+    except Exception as e:
+        st.error(f"Error loading model or tokenizer: {e}")
+        return None, None
+
+tokenizer, model = load_model(MODEL_NAME)
+
+# Streamlit app
+st.title("MySQL Chatbot")
+
+# User input
+user_input = st.text_input("Enter your SQL query or question:")
+
+# Generate response
+if user_input:
+    if tokenizer is not None and model is not None:
+        response = generate_response(user_input, tokenizer, model)
+        st.write(response)
+    else:
+        st.error("Model or tokenizer not loaded properly.")
+
 from t5_utils import load_model, generate_response, validate_sql_columns
 from config import MODEL_NAME
 import torch
