@@ -3,10 +3,22 @@ import plotly.express as px
 from database import get_table_columns, run_query
 from intents import intents, valid_columns
 import requests
-from t5_utils import load_model, generate_response, validate_sql_columns
+from t5_utils import load_model, generate__response, validate_sql_columns
 from config import MODEL_NAME
 import torch
 import logging
+
+
+# Function to check internet connection
+def check_internet_connection():
+    url = "http://www.google.com"
+    timeout = 5
+    try:
+        request = requests.get(url, timeout=timeout)
+        return True
+    except (requests.ConnectionError, requests.Timeout) as exception:
+        return False
+
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -14,22 +26,17 @@ logger = logging.getLogger(__name__)
 model = None
 tokenizer = None
 
-@st.cache_resource
-def get_model():
-    global tokenizer, model
-    if tokenizer is None or model is None:
-        logger.debug(f"Loading model from: {MODEL_NAME}")
-        try:
-            tokenizer, model = load_model(MODEL_NAME)
-            if tokenizer is None or model is None:
-                st.error("Failed to load model or tokenizer. Check logs for details.")
-                logger.error("Failed to load model or tokenizer.")
-            else:
-                logger.debug("Model and tokenizer loaded successfully.")
-        except Exception as e:
-            logger.error(f"Exception occurred while loading model: {e}")
-            st.error("An error occurred while loading the model. Check logs for details.")
-    return tokenizer, model
+@st.cache(allow_output_mutation=True)
+def load_model():
+    model_name = "google/flan-t5-base"
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+        return tokenizer, model
+    except Exception as e:
+        st.error(f"Error loading model or tokenizer: {e}")
+        return None, None
+
 
 tokenizer, model = get_model()
 
