@@ -20,6 +20,13 @@ def create_mysql_connection():
         print(f"Error: '{e}'")
     return connection
 
+def test_connection():
+    connection = create_connection()
+    if connection is not None and connection.is_connected():
+        connection.close()
+        return True
+    return False
+
 def get_table_columns():
     connection = create_mysql_connection()
     if connection is None:
