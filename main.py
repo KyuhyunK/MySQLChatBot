@@ -38,7 +38,7 @@ def load_model():
         return None, None
 
 
-tokenizer, model = get_model()
+tokenizer, model = load_model()
 
 def invoke_chain(user_question, valid_columns):
     # Prepare the prompt for generating the SQL query
