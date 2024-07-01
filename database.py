@@ -1,7 +1,6 @@
-import mysql.connector
-from mysql.connector import Error
+import psycopg2
 import pandas as pd
-from config import MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE
+from config import POSTGRESQL_HOST, POSTGRESQL_USER, POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE
 
 def create_mysql_connection():
     connection = None

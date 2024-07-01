@@ -2,10 +2,10 @@ import streamlit as st
 import os
 
 MODEL_NAME = "google/flan-t5-base"
-MYSQL_HOST = st.secrets["mysql"]["MYSQL_HOST"]
-MYSQL_USER = st.secrets["mysql"]["MYSQL_USER"]
-MYSQL_PASSWORD = st.secrets["mysql"]["MYSQL_PASSWORD"]
-MYSQL_DATABASE = st.secrets["mysql"]["MYSQL_DATABASE"]
+POSTGRESQL_HOST = st.secrets["mysql"]["MYSQL_HOST"]
+POSTGRESQL_USER = st.secrets["mysql"]["MYSQL_USER"]
+POSTGRESQL_PASSWORD = st.secrets["mysql"]["MYSQL_PASSWORD"]
+POSTGRESQL_DATABASE = st.secrets["mysql"]["MYSQL_DATABASE"]
 
 column_descriptions = {
     "id": "Unique identifier for each record",

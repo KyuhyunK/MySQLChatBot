@@ -1,9 +1,10 @@
+# main.py
 import streamlit as st
 import plotly.express as px
 import torch
 import logging
 import requests
-from database import get_table_columns, run_query, create_mysql_connection
+from database import get_table_columns, run_query
 from intents import intents, valid_columns
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from t5_utils import load_model, generate_response, validate_sql_columns
@@ -85,29 +86,11 @@ def create_plotly_graph(df, graph_type, x_col, y_col, title):
         return
     st.plotly_chart(fig)
 
-# Function to test MySQL connection
-def test_mysql_connection():
-    connection = None  # Ensure connection is defined
-    try:
-        connection = create_mysql_connection()
-        if connection.is_connected():
-            st.success("Successfully connected to MySQL database.")
-        else:
-            st.error("Failed to connect to MySQL database.")
-    except Exception as e:
-        st.error(f"Error connecting to MySQL database: {e}")
-    finally:
-        if connection and connection.is_connected():
-            connection.close()
-
 # Streamlit application code
 def main():
-    st.title('AI Chat Interface for MySQL Database')
+    st.title('AI Chat Interface for PostgreSQL Database')
 
-    st.write("Welcome to the AI Chat Interface for MySQL Database. You can ask questions about the database, and I will help you retrieve and visualize the data.\n")
-
-    if st.button('Test MySQL Connection'):
-        test_mysql_connection()
+    st.write("Welcome to the AI Chat Interface for PostgreSQL Database. You can ask questions about the database, and I will help you retrieve and visualize the data.\n") 
 
     if st.button('Show Table Structure'):
         columns_df = get_table_columns()
