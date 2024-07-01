@@ -92,12 +92,16 @@ def main():
     st.write("Welcome to the AI Chat Interface for PostgreSQL Database. You can ask questions about the database, and I will help you retrieve and visualize the data.\n") 
 
     if st.button('Show Table Structure'):
-        columns_df = get_table_columns()
-        st.write("Table Structure of 'aggregate_profit_data':")
-        st.write(columns_df)
-        st.write("Column Descriptions:")
-        for col in columns_df["Field"]:
-            st.write(f"**{col}**: {column_descriptions.get(col, 'No description available')}")
+        try:
+            columns_df = get_table_columns()
+            st.write("Table Structure of 'aggregate_profit_data':")
+            st.write(columns_df)
+            st.write("Column Descriptions:")
+            st.write(columns_df.head())  # Add this line to print the DataFrame structure
+            for col in columns_df["Column"]:  # Use the correct column name based on the DataFrame structure
+                st.write(f"**{col}**: No description available")
+        except Exception as e:
+            st.error(f"Error: {e}")
 
     user_question = st.text_input("Enter your question about the database:")
     if st.button('Submit'):

@@ -20,17 +20,17 @@ def create_pg_connection():
     return connection
 
 def get_table_columns():
-    connection = create_pg_connection()
+    connection = create_postgres_connection()
     if connection is None:
         print("Error: Connection to PostgreSQL is not established.")
-        return pd.DataFrame()
+        return pd.DataFrame(), []
 
     cursor = connection.cursor()
     try:
         query = "SELECT column_name FROM information_schema.columns WHERE table_name = 'aggregate_profit_data'"
         cursor.execute(query)
         result = cursor.fetchall()
-        columns_df = pd.DataFrame(result, columns=["Field"])
+        columns_df = pd.DataFrame(result, columns=["Column"])
     except Exception as e:
         print(f"Error: '{e}'")
         columns_df = pd.DataFrame()
