@@ -1,4 +1,3 @@
-# main.py
 import streamlit as st
 import plotly.express as px
 import torch
@@ -117,7 +116,7 @@ def main():
                 st.json(response)
             else:
                 corrected_sql_query = invoke_chain(user_question, valid_columns=[])
-                df, result = run_query(corrected_sql_query)
+                df = run_query(corrected_sql_query)
                 response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query."
                 response = generate_response(response_prompt, tokenizer, model, max_new_tokens=50)
                 st.write("Generated SQL Query:")
