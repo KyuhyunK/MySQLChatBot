@@ -97,7 +97,6 @@ def main():
             st.write("Table Structure of 'aggregate_profit_data':")
             st.write(columns_df)
             st.write("Column Descriptions:")
-            st.write(columns_df.head())  # Add this line to print the DataFrame structure
             for col in columns_df["Column"]:  # Use the correct column name based on the DataFrame structure
                 st.write(f"**{col}**: No description available")
         except Exception as e:

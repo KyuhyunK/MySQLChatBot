@@ -20,10 +20,10 @@ def create_pg_connection():
     return connection
 
 def get_table_columns():
-    connection = create_pg_connection()
+    connection = create_postgres_connection()
     if connection is None:
         print("Error: Connection to PostgreSQL is not established.")
-        return pd.DataFrame(), []
+        return pd.DataFrame()
 
     cursor = connection.cursor()
     try:
