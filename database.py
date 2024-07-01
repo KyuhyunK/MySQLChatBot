@@ -2,44 +2,36 @@ import psycopg2
 import pandas as pd
 from config import POSTGRESQL_HOST, POSTGRESQL_USER, POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE
 
-def create_mysql_connection():
+def create_pg_connection():
     connection = None
     try:
-        connection = mysql.connector.connect(
-            host=MYSQL_HOST,
-            user=MYSQL_USER,
-            password=MYSQL_PASSWORD,
-            database=MYSQL_DATABASE
+        connection = psycopg2.connect(
+            host=POSTGRESQL_HOST,
+            user=POSTGRESQL_USER,
+            password=POSTGRESQL_PASSWORD,
+            dbname=POSTGRESQL_DATABASE
         )
-        if connection.is_connected():
-            print("MySQL connection successful")
+        if connection:
+            print("PostgreSQL connection successful")
         else:
-            print("Failed to connect to MySQL")
-    except Error as e:
+            print("Failed to connect to PostgreSQL")
+    except Exception as e:
         print(f"Error: '{e}'")
     return connection
 
-def test_connection():
-    connection = create_mysql_connection()
-    if connection is not None and connection.is_connected():
-        connection.close()
-        return True
-    return False
-
 def get_table_columns():
-    connection = create_mysql_connection()
+    connection = create_pg_connection()
     if connection is None:
-        print("Error: Connection to MySQL is not established.")
-        return pd.DataFrame(), []
+        print("Error: Connection to PostgreSQL is not established.")
+        return pd.DataFrame()
 
     cursor = connection.cursor()
     try:
-        query = "DESCRIBE aggregate_profit_data"
+        query = "SELECT column_name FROM information_schema.columns WHERE table_name = 'aggregate_profit_data'"
         cursor.execute(query)
         result = cursor.fetchall()
-        columns_df = pd.DataFrame(result, columns=["Field", "Type", "Null", "Key", "Default", "Extra"])
-        print("Columns DataFrame:\n", columns_df)  # Debugging: Print the DataFrame
-    except Error as e:
+        columns_df = pd.DataFrame(result, columns=["Field"])
+    except Exception as e:
         print(f"Error: '{e}'")
         columns_df = pd.DataFrame()
     finally:
@@ -48,10 +40,10 @@ def get_table_columns():
     return columns_df
 
 def run_query(query):
-    connection = create_mysql_connection()
+    connection = create_pg_connection()
     if connection is None:
-        print("Error: Connection to MySQL is not established.")
-        return pd.DataFrame(), []
+        print("Error: Connection to PostgreSQL is not established.")
+        return pd.DataFrame()
 
     cursor = connection.cursor()
     try:
@@ -59,11 +51,10 @@ def run_query(query):
         result = cursor.fetchall()
         columns = [desc[0] for desc in cursor.description]
         df = pd.DataFrame(result, columns=columns)
-    except Error as e:
+    except Exception as e:
         print(f"Error: '{e}'")
         df = pd.DataFrame()
-        result = []
     finally:
         cursor.close()
         connection.close()
-    return df, result
+    return df
