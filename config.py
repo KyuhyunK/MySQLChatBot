@@ -3,7 +3,7 @@ import os
 
 MODEL_NAME = "google/flan-t5-base"
 POSTGRESQL_HOST = st.secrets["postgresql"]["POSTGRESQL_HOST"]
-POSTGRESQL_PORT = st.secrets["postgres"]["POSTGRESQL_PORT"]
+POSTGRESQL_PORT = st.secrets["postgresql"]["POSTGRESQL_PORT"]
 POSTGRESQL_USER = st.secrets["postgresql"]["POSTGRESQL_USER"]
 POSTGRESQL_PASSWORD = st.secrets["postgresql"]["POSTGRESQL_PASSWORD"]
 POSTGRESQL_DATABASE = st.secrets["postgresql"]["POSTGRESQL_DATABASE"]
