@@ -5,13 +5,7 @@ from config import POSTGRESQL_HOST, POSTGRESQL_PORT, POSTGRESQL_USER, POSTGRESQL
 def create_pg_connection():
     connection = None
     try:
-        connection = psycopg2.connect(
-            host=POSTGRESQL_HOST,
-	    port=POSTGRESQL_PORT,
-            user=POSTGRESQL_USER,
-            password=POSTGRESQL_PASSWORD,
-            dbname=POSTGRESQL_DATABASE
-        )
+        connection = psycopg2.connect(**st.secrets[""postgres])
         if connection:
             print("PostgreSQL connection successful")
         else:
