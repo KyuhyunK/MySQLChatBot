@@ -1,11 +1,12 @@
 import os
 
 MODEL_NAME = "google/flan-t5-base"
-POSTGRESQL_HOST = os.getenv["postgresql"]["POSTGRESQL_HOST"]
-POSTGRESQL_PORT = os.getenv["postgresql"]["POSTGRESQL_PORT"]
-POSTGRESQL_USER = os.getenv["postgresql"]["POSTGRESQL_USER"]
-POSTGRESQL_PASSWORD = os.getenv["postgresql"]["POSTGRESQL_PASSWORD"]
-POSTGRESQL_DATABASE = os.getenv["postgresql"]["POSTGRESQL_DATABASE"]
+
+POSTGRESQL_HOST = os.getenv("POSTGRESQL_HOST")
+POSTGRESQL_PORT = os.getenv("POSTGRESQL_PORT")
+POSTGRESQL_USER = os.getenv("POSTGRESQL_USER")
+POSTGRESQL_PASSWORD = os.getenv("POSTGRESQL_PASSWORD")
+POSTGRESQL_DATABASE = os.getenv("POSTGRESQL_DATABASE")
 
 column_descriptions = {
     "id": "Unique identifier for each record",
