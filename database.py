@@ -1,12 +1,13 @@
 import psycopg2
 import pandas as pd
-from config import POSTGRESQL_HOST, POSTGRESQL_USER, POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE
+from config import POSTGRESQL_HOST, POSTGRESQL_PORT, POSTGRESQL_USER, POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE
 
 def create_pg_connection():
     connection = None
     try:
         connection = psycopg2.connect(
             host=POSTGRESQL_HOST,
+	    port=POSTGRESQL_PORT,
             user=POSTGRESQL_USER,
             password=POSTGRESQL_PASSWORD,
             dbname=POSTGRESQL_DATABASE
