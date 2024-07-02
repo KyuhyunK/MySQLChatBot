@@ -5,7 +5,13 @@ from config import POSTGRESQL_HOST, POSTGRESQL_PORT, POSTGRESQL_USER, POSTGRESQL
 def create_pg_connection():
     connection = None
     try:
-        connection = psycopg2.connect(**st.secrets["postgresql"])
+        connection = psycopg2.connect(
+            host=POSTGRESQL_HOST,
+	    port=POSTGRESQL_PORT,
+            user=POSTGRESQL_USER,
+            password=POSTGRESQL_PASSWORD,
+            dbname=POSTGRESQL_DATABASE
+        )
         if connection:
             print("PostgreSQL connection successful")
         else:
@@ -33,7 +39,7 @@ def get_table_columns():
         cursor.close()
         connection.close()
     return columns_df
- 
+
 def run_query(query):
     connection = create_pg_connection()
     if connection is None:
