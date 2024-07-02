@@ -8,6 +8,9 @@ from intents import intents, valid_columns
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from t5_utils import load_model, generate_response, validate_sql_columns
 from config import MODEL_NAME
+import pandas as pd
+from sqlalchemy import create_engine
+from database import host, user, password, dbname
 
 # Function to check internet connection
 def check_internet_connection():
@@ -84,6 +87,19 @@ def create_plotly_graph(df, graph_type, x_col, y_col, title):
         st.write("Unsupported graph type")
         return
     st.plotly_chart(fig)
+
+# Function to establish a database connection using SQLAlchemy
+def get_engine():
+    return create_engine('postgresql+psycopg2://user:password@host/dbname')
+
+# Function to fetch data in chunks and stream to Streamlit
+def fetch_and_stream_data(query, chunk_size=1000):
+    engine = get_engine()
+    try:
+        for chunk in pd.read_sql_query(query, engine, chunksize=chunk_size):
+            st.dataframe(chunk)
+    except Exception as e:
+        st.error(f"Error fetching data: {e}")
 
 # Streamlit application code
 def main():
