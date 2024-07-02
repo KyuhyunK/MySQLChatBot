@@ -5,6 +5,6 @@ plotly
 requests
 llama-index
 torch
-transformers
+transformers==4.24.0
 
 
