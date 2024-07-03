@@ -8,4 +8,5 @@ torch
 transformers==4.24.0
 sqlalchemy
 openai
+python-dotenv
 
