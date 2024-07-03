@@ -39,7 +39,7 @@ def load_model(model_name):
         st.error(f"Error loading model or tokenizer: {e}")
         return None, None
 
-tokenizer, model = load_model(MODEL_NAME)
+tokenizer, model = load_model(OPENAI_API_KEY)
 
 # Function to invoke the chain for generating SQL query and validating it
 def invoke_chain(user_question, valid_columns):
