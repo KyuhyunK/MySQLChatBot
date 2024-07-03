@@ -10,7 +10,7 @@ from t5_utils import load_model, generate_response, validate_sql_columns
 from config import MODEL_NAME
 import pandas as pd
 from sqlalchemy import create_engine
-from database import host, user, password, dbname
+from config import POSTGRESQL_HOST, POSTGRESQL_USER, POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE
 
 # Function to check internet connection
 def check_internet_connection():
@@ -90,7 +90,7 @@ def create_plotly_graph(df, graph_type, x_col, y_col, title):
 
 # Function to establish a database connection using SQLAlchemy
 def get_engine():
-    return create_engine('postgresql+psycopg2://user:password@host/dbname')
+    return create_engine('postgresql+psycopg2://POSTGRESQL_USER:POSTGRESQL_PASSWORD@POSTGRESQL_HOST/POSTGRESQL_DATABASE')
 
 # Function to fetch data in chunks and stream to Streamlit
 def fetch_and_stream_data(query, chunk_size=1000):
