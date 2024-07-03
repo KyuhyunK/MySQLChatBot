@@ -1,6 +1,9 @@
 import os
+from dotenv import load_dotenv
 
-MODEL_NAME = "google/flan-t5-base"
+load_dotenv()
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 POSTGRESQL_HOST = os.getenv("POSTGRESQL_HOST")
 POSTGRESQL_PORT = os.getenv("POSTGRESQL_PORT")
