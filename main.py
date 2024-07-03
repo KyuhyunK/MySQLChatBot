@@ -7,9 +7,9 @@ from database import get_table_columns, run_query
 from intents import intents, valid_columns
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from openai_utils import invoke_openai_response, invoke_openai_sql, validate_sql_columns
+from config import MODEL_NAME, POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE
 import pandas as pd
 from sqlalchemy import create_engine
-from config import OPENAI_API_KEY, POSTGRESQL_HOST, POSTGRESQL_USER, POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE
 
 # Function to check internet connection
 def check_internet_connection():
@@ -39,7 +39,7 @@ def load_model(model_name):
         st.error(f"Error loading model or tokenizer: {e}")
         return None, None
 
-tokenizer, model = load_model(OPENAI_API_KEY)
+tokenizer, model = load_model(MODEL_NAME)
 
 # Function to invoke the chain for generating SQL query and validating it
 def invoke_chain(user_question, valid_columns):
@@ -54,10 +54,11 @@ def main():
 
     st.sidebar.title("Settings")
     st.sidebar.write("Configure your database connection below:")
-    POSTGRESQL_HOST = st.sidebar.text_input("PostgreSQL Host", value=POSTGRESQL_HOST)
-    POSTGRESQL_USER = st.sidebar.text_input("PostgreSQL User", value=POSTGRESQL_USER)
-    POSTGRESQL_PASSWORD = st.sidebar.text_input("PostgreSQL Password", value=POSTGRESQL_PASSWORD)
-    POSTGRESQL_DATABASE = st.sidebar.text_input("PostgreSQL Database", value=POSTGRESQL_DATABASE)
+
+    POSTGRESQL_HOST = st.sidebar.text_input("PostgreSQL Host", value=CONFIG_POSTGRESQL_HOST)
+    POSTGRESQL_USER = st.sidebar.text_input("PostgreSQL User", value=CONFIG_POSTGRESQL_USER)
+    POSTGRESQL_PASSWORD = st.sidebar.text_input("PostgreSQL Password", value=CONFIG_POSTGRESQL_PASSWORD)
+    POSTGRESQL_DATABASE = st.sidebar.text_input("PostgreSQL Database", value=CONFIG_POSTGRESQL_DATABASE)
 
     try:
         engine = create_engine(f'postgresql://{POSTGRESQL_USER}:{POSTGRESQL_PASSWORD}@{POSTGRESQL_HOST}/{POSTGRESQL_DATABASE}')
