@@ -7,10 +7,9 @@ from database import get_table_columns, run_query
 from intents import intents, valid_columns
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from openai_utils import invoke_openai_response, invoke_openai_sql, validate_sql_columns
-from config import MODEL_NAME
 import pandas as pd
 from sqlalchemy import create_engine
-from config import POSTGRESQL_HOST, POSTGRESQL_USER, POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE
+from config import OPENAI_API_KEY, POSTGRESQL_HOST, POSTGRESQL_USER, POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE
 
 # Function to check internet connection
 def check_internet_connection():
