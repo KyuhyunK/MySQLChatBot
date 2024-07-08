@@ -10,31 +10,33 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     raise ValueError("The OPENAI_API_KEY environment variable is not set.")
 
-# Explicitly set the OpenAI API key
-openai.api_key = OPENAI_API_KEY
+# Create a client instance with the API key
+client = openai.OpenAI(
+    api_key=OPENAI_API_KEY
+)
 
 def invoke_openai_sql(prompt):
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant, who is an expert on a given database."},
             {"role": "user", "content": prompt}
         ]
     )
-    message_content = response['choices'][0]['message']['content'].strip()
+    message_content = response.choices[0].message['content'].strip()
     sql_query_start = message_content.find("SELECT")
     sql_query = message_content[sql_query_start:]
     return sql_query
 
 def invoke_openai_response(prompt):
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt}
         ]
     )
-    answer = response['choices'][0]['message']['content'].strip()
+    answer = response.choices[0].message['content'].strip()
     return answer
 
 def validate_sql_columns(sql_query, valid_columns):

@@ -1,5 +1,3 @@
-from dotenv import load_dotenv
-import os
 import streamlit as st
 import plotly.express as px
 import torch
@@ -11,9 +9,6 @@ from openai_utils import invoke_openai_response, invoke_openai_sql, validate_sql
 from config import POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE
 import pandas as pd
 from sqlalchemy import create_engine
-
-# Load the environment variables from .env
-load_dotenv()
 
 # Function to check internet connection
 def check_internet_connection():
