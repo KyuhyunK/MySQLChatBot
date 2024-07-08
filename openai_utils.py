@@ -1,11 +1,11 @@
 import openai
 from config import OPENAI_API_KEY
 
-# Explicitly set the OpenAI API key
-openai.api_key = OPENAI_API_KEY
+# Create a client instance
+client = openai.Client(api_key=OPENAI_API_KEY)
 
 def invoke_openai_sql(prompt):
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant, who is an expert on a given database."},
@@ -18,7 +18,7 @@ def invoke_openai_sql(prompt):
     return sql_query
 
 def invoke_openai_response(prompt):
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
