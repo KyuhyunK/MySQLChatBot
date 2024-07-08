@@ -7,7 +7,7 @@ from database import get_table_columns, run_query
 from intents import intents, valid_columns
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from openai_utils import invoke_openai_response, invoke_openai_sql, validate_sql_columns
-from config import POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE
+from config import OPENAI_API_KEY, POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE
 import pandas as pd
 from sqlalchemy import create_engine
 
@@ -24,22 +24,7 @@ def check_internet_connection():
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# Load the model and tokenizer
 @st.cache_resource
-def load_model(model_name):
-    if not check_internet_connection():
-        st.error("No internet connection. Please check your connection and try again.")
-        return None, None
-
-    try:
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
-        model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
-        return tokenizer, model
-    except Exception as e:
-        st.error(f"Error loading model or tokenizer: {e}")
-        return None, None
-
-tokenizer, model = load_model(MODEL_NAME)
 
 # Function to invoke the chain for generating SQL query and validating it
 def invoke_chain(user_question, valid_columns):
