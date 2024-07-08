@@ -1,20 +1,16 @@
 import openai
-from dotenv import load_dotenv
-import os
-
-# Load the environment variables from .env
-load_dotenv()
-
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+from config import OPENAI_API_KEY
 
 if not OPENAI_API_KEY:
     raise ValueError("The OPENAI_API_KEY environment variable is not set.")
 
-# Explicitly set the OpenAI API key
+# Create a client instance
+client = openai.Client(api_key=OPENAI_API_KEY)
 openai.api_key = OPENAI_API_KEY
 
+
 def invoke_openai_sql(prompt):
-    response = openai.ChatCompletion.create(
+    response = client.chat.completion.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant, who is an expert on a given database."},
@@ -27,7 +23,7 @@ def invoke_openai_sql(prompt):
     return sql_query
 
 def invoke_openai_response(prompt):
-    response = openai.ChatCompletion.create(
+    response = client.chat.completion.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
