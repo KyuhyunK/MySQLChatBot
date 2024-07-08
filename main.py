@@ -7,7 +7,7 @@ from database import get_table_columns, run_query
 from intents import intents, valid_columns
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from openai_utils import invoke_openai_response, invoke_openai_sql, validate_sql_columns
-from config import MODEL_NAME, POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE
+from config import POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE
 import pandas as pd
 from sqlalchemy import create_engine
 
