@@ -1,5 +1,6 @@
 import streamlit as st
 import plotly.express as px
+import torch
 import logging
 import requests
 from database import get_table_columns, run_query
@@ -24,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 # Function to invoke the chain for generating SQL query and validating it
 def invoke_chain(user_question, valid_columns):
-    sql_query_prompt = f"Generate a SQL query for the following question: {user_question}. The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. Ensure the query includes the table name and the 'FROM' keyword. Use only valid columns from the following list: {', '.join(valid_columns)}. Keep your response concise and easy to understand."
+    sql_query_prompt = f"Generate a SQL query for the following question: {user_question}. The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. Ensure the query includes the table name and the 'FROM' keyword. Use only valid columns from the following list: {', '.join(valid_columns)}. Display the query along with any tables and graphs that are related to the question. Then write a brief description about the graph/table. Keep your response concise and easy to understand."
     
     generated_sql_query = invoke_openai_sql(sql_query_prompt)
     corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)
@@ -63,7 +64,7 @@ def main():
                 st.write("Model Response:")
                 st.json(response)
             else:
-                corrected_sql_query = invoke_chain(user_question, valid_columns)
+                corrected_sql_query = invoke_chain(user_question, valid_columns=[])
                 df = run_query(corrected_sql_query)
                 response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query."
                 response = invoke_openai_response(response_prompt)
@@ -71,21 +72,21 @@ def main():
                 st.code(corrected_sql_query)
                 if not df.empty:
                     st.dataframe(df)
-                    graph_type = "bar"  # This can be modified based on user question or preferences
-                    if 'listing_state' in df.columns and 'total_revenue' in df.columns:
-                        fig = px.bar(df, x='listing_state', y='total_revenue', title="Total Revenue by Listing State")
-                        st.plotly_chart(fig)
-                    elif 'quarter' in df.columns and 'total_revenue' in df.columns:
-                        fig = px.line(df, x='quarter', y='total_revenue', title="Quarterly Revenue Trend")
-                        st.plotly_chart(fig)
-                    elif 'sku' in df.columns and 'total_profit' in df.columns:
-                        fig = px.bar(df, x='sku', y='total_profit', title="Top 10 SKUs by Total Profit")
-                        st.plotly_chart(fig)
-                    elif 'asin' in df.columns and 'total_ordered_items' in df.columns:
-                        fig = px.bar(df, x='asin', y='total_ordered_items', title="Top 5 ASINs by Total Ordered Items")
-                        st.plotly_chart(fig)
-                    st.write("Description:")
-                    st.write(response)
+                    graph_type = 'bar'  # Replace this with your logic for determining the graph type
+                    fig = create_plotly_graph(df, graph_type, "listing_state", "total_revenue_by_listing_state", "Total Revenue by Listing State")
+                    st.plotly_chart(fig)
+                    st.write("Description: This graph shows the total revenue by listing state based on the queried data.")
+
+def create_plotly_graph(df, graph_type, x_col, y_col, title):
+    if graph_type == 'bar':
+        fig = px.bar(df, x=x_col, y=y_col, title=title)
+    elif graph_type == 'line':
+        fig = px.line(df, x=x_col, y=y_col, title=title)
+    elif graph_type == 'scatter':
+        fig = px.scatter(df, x=x_col, y=y_col, title=title)
+    else:
+        fig = px.histogram(df, x=x_col, y=y_col, title=title)
+    return fig
 
 if __name__ == "__main__":
     main()
