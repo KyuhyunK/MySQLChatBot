@@ -1,12 +1,11 @@
 import streamlit as st
 import plotly.express as px
-import torch
 import logging
 import requests
 from database import get_table_columns, run_query
 from intents import intents, valid_columns
 from openai_utils import invoke_openai_response, invoke_openai_sql, validate_sql_columns
-from config import POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE
+from config import OPENAI_API_KEY, POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE
 import pandas as pd
 from sqlalchemy import create_engine
 
@@ -64,7 +63,7 @@ def main():
                 st.write("Model Response:")
                 st.json(response)
             else:
-                corrected_sql_query = invoke_chain(user_question, valid_columns=[])
+                corrected_sql_query = invoke_chain(user_question, valid_columns)
                 df = run_query(corrected_sql_query)
                 response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query."
                 response = invoke_openai_response(response_prompt)
@@ -72,9 +71,21 @@ def main():
                 st.code(corrected_sql_query)
                 if not df.empty:
                     st.dataframe(df)
-                    graph_type = determine_graph_type(user_question)
-                    if 'listing_state' in df.columns and 'revenue_difference' in df.columns:
-                        create_plotly_graph(df, graph_type, "listing_state", "revenue_difference", "Total Revenue Difference by Listing State")
+                    graph_type = "bar"  # This can be modified based on user question or preferences
+                    if 'listing_state' in df.columns and 'total_revenue' in df.columns:
+                        fig = px.bar(df, x='listing_state', y='total_revenue', title="Total Revenue by Listing State")
+                        st.plotly_chart(fig)
+                    elif 'quarter' in df.columns and 'total_revenue' in df.columns:
+                        fig = px.line(df, x='quarter', y='total_revenue', title="Quarterly Revenue Trend")
+                        st.plotly_chart(fig)
+                    elif 'sku' in df.columns and 'total_profit' in df.columns:
+                        fig = px.bar(df, x='sku', y='total_profit', title="Top 10 SKUs by Total Profit")
+                        st.plotly_chart(fig)
+                    elif 'asin' in df.columns and 'total_ordered_items' in df.columns:
+                        fig = px.bar(df, x='asin', y='total_ordered_items', title="Top 5 ASINs by Total Ordered Items")
+                        st.plotly_chart(fig)
+                    st.write("Description:")
+                    st.write(response)
 
 if __name__ == "__main__":
     main()
