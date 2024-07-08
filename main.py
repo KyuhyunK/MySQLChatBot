@@ -5,7 +5,6 @@ import logging
 import requests
 from database import get_table_columns, run_query
 from intents import intents, valid_columns
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from openai_utils import invoke_openai_response, invoke_openai_sql, validate_sql_columns
 from config import OPENAI_API_KEY, POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE
 import pandas as pd
@@ -23,8 +22,6 @@ def check_internet_connection():
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-@st.cache_resource
 
 # Function to invoke the chain for generating SQL query and validating it
 def invoke_chain(user_question, valid_columns):
