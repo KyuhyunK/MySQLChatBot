@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+print(f"OPENAI_API_KEY: {OPENAI_API_KEY}")
 
 POSTGRESQL_HOST = os.getenv("POSTGRESQL_HOST")
 POSTGRESQL_PORT = os.getenv("POSTGRESQL_PORT")
