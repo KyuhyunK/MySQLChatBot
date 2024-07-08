@@ -1,6 +1,9 @@
 import openai
 from config import OPENAI_API_KEY
 
+if not OPENAI_API_KEY:
+    raise ValueError("The OPENAI_API_KEY environment variable is not set.")
+
 # Create a client instance
 client = openai.Client(api_key=OPENAI_API_KEY)
 
