@@ -23,7 +23,7 @@ def invoke_openai_sql(prompt):
             {"role": "user", "content": prompt}
         ]
     )
-    message_content = response.choices[0].message['content'].strip()
+    message_content = response.choices[0].message.content.strip()
     sql_query_start = message_content.find("SELECT")
     sql_query = message_content[sql_query_start:]
     return sql_query
@@ -36,7 +36,7 @@ def invoke_openai_response(prompt):
             {"role": "user", "content": prompt}
         ]
     )
-    answer = response.choices[0].message['content'].strip()
+    answer = response.choices[0].message.content.strip()
     return answer
 
 def validate_sql_columns(sql_query, valid_columns):
