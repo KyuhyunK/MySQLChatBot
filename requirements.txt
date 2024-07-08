@@ -7,6 +7,5 @@ llama-index
 torch
 transformers==4.24.0
 sqlalchemy
-openai
+openai>=1.0.0
 python-dotenv
-
