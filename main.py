@@ -1,6 +1,5 @@
 import streamlit as st
 import plotly.express as px
-import torch
 import logging
 import requests
 from database import get_table_columns, run_query
