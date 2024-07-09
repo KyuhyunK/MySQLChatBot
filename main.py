@@ -49,11 +49,11 @@ def main():
             if matched_intent:
                 handle_intent(intent, st)
             else:
-                # Generate SQL query using OpenAI (or other method)
+                # Generate SQL query using OpenAI 
                 generated_sql_query = invoke_chain(user_question, valid_columns)  # Pass valid_columns as the second argument
 
                 # Validate the generated SQL query
-                corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)  # Validate the SQL query using the list of valid columns
+                corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns) 
 
                 # Run the validated query and display the results
                 df = run_query(corrected_sql_query)
@@ -63,13 +63,6 @@ def main():
                 st.write("Generated SQL Query:")
                 st.code(corrected_sql_query)
                 
-                if not df.empty:
-                    st.write("Table:")
-                    st.dataframe(df)
-                    graph_type = determine_graph_type(df)
-                    fig = create_plotly_graph(df, graph_type, "listing_state", "total_revenue_by_state", "Total Revenue by Listing State")
-                    st.plotly_chart(fig)
-                    st.write("Description: This graph shows the total revenue by listing state based on the queried data.")
         else:
             st.write("Please enter a valid question.")
 
