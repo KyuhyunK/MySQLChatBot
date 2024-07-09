@@ -1,12 +1,11 @@
 import streamlit as st
 import plotly.express as px
 from database import get_table_columns, run_query
-from intents import intents, handle_intent, valid_columns
+from intents import intents, handle_intent
 from openai_utils import invoke_openai_response, invoke_openai_sql, validate_sql_columns
-from config import OPENAI_API_KEY, POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE, column_descriptions
+from config import OPENAI_API_KEY, POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE, column_descriptions, valid_columns
 import pandas as pd
 from sqlalchemy import create_engine
-
 
 # Function to invoke the chain for generating SQL query and validating it
 def invoke_chain(user_question, valid_columns):
@@ -51,7 +50,7 @@ def main():
                 handle_intent(intent, st)
             else:
                 # Generate SQL query using OpenAI (or other method)
-                generated_sql_query = invoke_chain(user_question)  # Function to generate SQL query from user input
+                generated_sql_query = invoke_chain(user_question, valid_columns)  # Pass valid_columns as the second argument
 
                 # Validate the generated SQL query
                 corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)  # Validate the SQL query using the list of valid columns
@@ -63,6 +62,16 @@ def main():
                 
                 st.write("Generated SQL Query:")
                 st.code(corrected_sql_query)
+                
+                if not df.empty:
+                    st.write("Table:")
+                    st.dataframe(df)
+                    graph_type = determine_graph_type(df)
+                    fig = create_plotly_graph(df, graph_type, "listing_state", "total_revenue_by_state", "Total Revenue by Listing State")
+                    st.plotly_chart(fig)
+                    st.write("Description: This graph shows the total revenue by listing state based on the queried data.")
+        else:
+            st.write("Please enter a valid question.")
 
 def create_plotly_graph(df, graph_type, x_col, y_col, title):
     if graph_type == 'bar':
