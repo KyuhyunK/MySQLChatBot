@@ -31,30 +31,6 @@ def invoke_chain(user_question, valid_columns):
     corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)
     return corrected_sql_query
 
-def determine_graph_type(df):
-    if df.empty:
-        return 'bar'
-    
-    if len(df.columns) == 2:
-        if df.dtypes[1] in ['int64', 'float64']:
-            return 'bar'
-        elif df.dtypes[1] == 'object':
-            return 'scatter'
-    elif len(df.columns) > 2:
-        return 'line'
-    return 'bar'
-
-def create_plotly_graph(df, graph_type, x_col, y_col, title):
-    if graph_type == 'bar':
-        fig = px.bar(df, x=x_col, y=y_col, title=title)
-    elif graph_type == 'line':
-        fig = px.line(df, x=x_col, y=y_col, title=title)
-    elif graph_type == 'scatter':
-        fig = px.scatter(df, x=x_col, y=y_col, title=title)
-    else:
-        fig = px.histogram(df, x=x_col, y=y_col, title=title)
-    return fig
-
 def main():
     st.title("SQL Query Generator")
 
@@ -66,16 +42,16 @@ def main():
     POSTGRESQL_PASSWORD = st.sidebar.text_input("PostgreSQL Password", value=CONFIG_POSTGRESQL_PASSWORD)
     POSTGRESQL_DATABASE = st.sidebar.text_input("PostgreSQL Database", value=CONFIG_POSTGRESQL_DATABASE)
 
+    if st.sidebar.button('Show Table Column Descriptions'):
+        st.sidebar.write("Table Column Descriptions:")
+        for column, description in column_descriptions.items():
+            st.sidebar.write(f"**{column}**: {description}")
+
     try:
         engine = create_engine(f'postgresql://{POSTGRESQL_USER}:{POSTGRESQL_PASSWORD}@{POSTGRESQL_HOST}/{POSTGRESQL_DATABASE}')
         st.success("Connected to the database successfully.")
     except Exception as e:
         st.error(f"Error: {e}")
-
-    if st.sidebar.button('Show Table Column Descriptions'):
-        st.sidebar.write("### Table Column Descriptions")
-        for column, description in column_descriptions.items():
-            st.sidebar.write(f"**{column}**: {description}")
 
     user_question = st.text_input("Enter your question about the database:")
     if st.button('Submit'):
@@ -93,18 +69,30 @@ def main():
                 st.write("Model Response:")
                 st.json(response)
             else:
-                corrected_sql_query = invoke_chain(user_question, valid_columns=valid_columns)
+                corrected_sql_query = invoke_chain(user_question, valid_columns=[])
                 df = run_query(corrected_sql_query)
                 response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query."
                 response = invoke_openai_response(response_prompt)
                 st.write("Generated SQL Query:")
                 st.code(corrected_sql_query)
                 if not df.empty:
+                    st.write("Table:")
                     st.dataframe(df)
-                    graph_type = determine_graph_type(df)
-                    fig = create_plotly_graph(df, graph_type, df.columns[0], df.columns[1], "Total Revenue by Listing State")
+                    graph_type = 'bar'  # Replace this with your logic for determining the graph type
+                    fig = create_plotly_graph(df, graph_type, "listing_state", "total_revenue_by_state", "Total Revenue by Listing State")
                     st.plotly_chart(fig)
                     st.write("Description: This graph shows the total revenue by listing state based on the queried data.")
+
+def create_plotly_graph(df, graph_type, x_col, y_col, title):
+    if graph_type == 'bar':
+        fig = px.bar(df, x=x_col, y=y_col, title=title)
+    elif graph_type == 'line':
+        fig = px.line(df, x=x_col, y=y_col, title=title)
+    elif graph_type == 'scatter':
+        fig = px.scatter(df, x=x_col, y=y_col, title=title)
+    else:
+        fig = px.histogram(df, x=x_col, y=y_col, title=title)
+    return fig
 
 if __name__ == "__main__":
     main()
