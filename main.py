@@ -1,9 +1,9 @@
 import streamlit as st
 import plotly.express as px
 from database import get_table_columns, run_query
-from intents import intents, handle_intent
+from intents import intents, handle_intent, valid_columns
 from openai_utils import invoke_openai_response
-from config import OPENAI_API_KEY, POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE, column_descriptions, valid_columns
+from config import OPENAI_API_KEY, POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE, column_descriptions
 from sql_utils import invoke_chain
 import pandas as pd
 from sqlalchemy import create_engine
