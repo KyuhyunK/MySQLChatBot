@@ -62,7 +62,3 @@ def run_query(query):
         cursor.close()
         connection.close()
     return df
-
-test_query = "SELECT listing_state, SUM(total_revenue) AS total_revenue_by_state FROM aggregate_profit_data GROUP BY listing_state;"
-df = run_query(test_query)
-print(df)
