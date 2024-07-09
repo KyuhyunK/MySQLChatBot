@@ -2,9 +2,6 @@ psycopg2-binary
 pandas
 streamlit
 plotly
-requests
-llama-index
-torch
 transformers==4.24.0
 sqlalchemy
 openai>=1.0.0

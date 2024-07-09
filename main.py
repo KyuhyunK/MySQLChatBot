@@ -1,8 +1,5 @@
 import streamlit as st
 import plotly.express as px
-import torch
-import logging
-import requests
 from database import get_table_columns, run_query
 from intents import intents, valid_columns
 from openai_utils import invoke_openai_response, invoke_openai_sql, validate_sql_columns
@@ -10,12 +7,6 @@ from config import OPENAI_API_KEY, POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, PO
 import pandas as pd
 from sqlalchemy import create_engine
 
-
-if 'cache_cleared' not in st.session_state:
-    st.session_state.cache_cleared = False
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 
 # Function to invoke the chain for generating SQL query and validating it
 def invoke_chain(user_question, valid_columns):
@@ -40,16 +31,6 @@ def main():
         st.sidebar.write("Table Column Descriptions:")
         for column, description in column_descriptions.items():
             st.sidebar.write(f"**{column}**: {description}")
-
-
-#clear cache
-  if not st.session_state.cache_cleared:
-        if st.sidebar.button('Clear Cache and Reload'):
-            st.caching.clear_cache()
-            st.session_state.cache_cleared = True
-            st.success("Cache cleared and resources reloaded successfully.")
-
-
 
     try:
         engine = create_engine(f'postgresql://{POSTGRESQL_USER}:{POSTGRESQL_PASSWORD}@{POSTGRESQL_HOST}/{POSTGRESQL_DATABASE}')
