@@ -53,7 +53,13 @@ def main():
 
                 # Run the validated query and display the results
                 df = run_query(generated_sql_query)
-                response_prompt = f"User question: {user_question}\nSQL Query: {generated_sql_query}\nGenerate a suitable explanation for this query. Display the table generated from the query every time it is available using the following on the generated query: {st.dataframe(df)}. Always show the graphs generated from plotly when applicable. Then write a brief description about the graph/table. Keep your response concise and easy to understand."
+                response_prompt = (
+                        f"User question: {user_question}\nSQL Query: {generated_sql_query}\n"
+                        "Generate a suitable explanation for this query. Use the following Python code to display the table:\n\n"
+                        "st.dataframe(df)\n\n"
+                        "Always show the graphs generated from plotly when applicable. "
+                        "Then write a brief description about the graph/table. Keep your response concise and easy to understand."
+                    )
 
                 response = invoke_openai_response(response_prompt)
                 
