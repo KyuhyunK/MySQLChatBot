@@ -50,7 +50,7 @@ def main():
                 handle_intent(matched_intent, st)
             else:
                 # Generate SQL query using OpenAI (or other method)
-                generated_sql_query = invoke_chain(user_question)  # Function to generate SQL query from user input
+                generated_sql_query = invoke_chain(user_question, valid_columns)  # Function to generate SQL query from user input
 
                 # Run the validated query and display the results
                 df = run_query(generated_sql_query)
