@@ -2,11 +2,18 @@ import streamlit as st
 import plotly.express as px
 from database import get_table_columns, run_query
 from intents import intents, handle_intent, valid_columns
-from openai_utils import invoke_openai_response
+from openai_utils import invoke_openai_response, invoke_openai_sql, validate_sql_columns
 from config import OPENAI_API_KEY, POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE, column_descriptions
-from sql_utils import invoke_chain
 import pandas as pd
 from sqlalchemy import create_engine
+
+# Function to invoke the chain for generating SQL query and validating it
+def invoke_chain(user_question, valid_columns):
+    sql_query_prompt = f"Generate a SQL query for the following question: {user_question}. The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. Ensure the query includes the table name and the 'FROM' keyword. Use only valid columns from the following list: {', '.join(valid_columns)}. Display the table generated from the query every time it is available. Always show the graphs generated from plotly when applicable. Then write a brief description about the graph/table. Keep your response concise and easy to understand."
+    
+    generated_sql_query = invoke_openai_sql(sql_query_prompt)
+    corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)
+    return corrected_sql_query
 
 def main():
     st.title("SQL Query Generator")
