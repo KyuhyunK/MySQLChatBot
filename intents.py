@@ -143,7 +143,7 @@ valid_columns = [
     "return_rate", "profit_after_returns", "revenue_after_returns", "return_items", "cost_of_returns",
     "profit_margin_at_min", "profit_margin_at_max", "fulfillment_fee", "amazon_fees", "net_proceeds",
     "total_COGS", "total_fulfillment_fees", "total_return_processing_fees", "returned_items_cost",
-    "cost_of_return", "total_referral_fees"
+    "cost_of_return", "total_referral_fees", "year", "quarter"
 ]
 
 def handle_intent(intent, st):

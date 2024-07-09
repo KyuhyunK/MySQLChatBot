@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 # Function to invoke the chain for generating SQL query and validating it
 def invoke_chain(user_question, valid_columns):
-    sql_query_prompt = f"Generate a SQL query for the following question: {user_question}. The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. Ensure the query includes the table name and the 'FROM' keyword. Use only valid columns from the following list: {', '.join(valid_columns)}. Display the query along with any tables and graphs that are related to the question. Then write a brief description about the graph/table. Keep your response concise and easy to understand."
+    sql_query_prompt = f"Generate a SQL query for the following question: {user_question}. The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. Ensure the query includes the table name and the 'FROM' keyword. Use only valid columns from the following list: {valid_columns}. Display the query along with any tables and graphs that are related to the question. Then write a brief description about the graph/table. Keep your response concise and easy to understand."
     
     generated_sql_query = invoke_openai_sql(sql_query_prompt)
     corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)
