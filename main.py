@@ -47,22 +47,26 @@ def main():
                     break
 
             if matched_intent:
-                handle_intent(intent, st)
+                handle_intent(matched_intent, st)
             else:
-                # Generate SQL query using OpenAI 
-                generated_sql_query = invoke_chain(user_question, valid_columns)  # Pass valid_columns as the second argument
-
-                # Validate the generated SQL query
-                corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns) 
+                # Generate SQL query using OpenAI (or other method)
+                generated_sql_query = invoke_chain(user_question)  # Function to generate SQL query from user input
 
                 # Run the validated query and display the results
-                df = run_query(corrected_sql_query)
-                response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query."
+                df = run_query(generated_sql_query)
+                response_prompt = f"User question: {user_question}\nSQL Query: {generated_sql_query}\nGenerate a suitable explanation for this query. Display the table generated from the query every time it is available. Always show the graphs generated from plotly when applicable."
                 response = invoke_openai_response(response_prompt)
                 
                 st.write("Generated SQL Query:")
-                st.code(corrected_sql_query)
+                st.code(generated_sql_query)
                 
+                if not df.empty:
+                    st.write("Table:")
+                    st.table(df)  # Use Streamlit's table to display the dataframe
+                    graph_type = determine_graph_type(df)
+                    fig = create_plotly_graph(df, graph_type, "listing_state", "total_revenue", "Total Revenue by Listing State")
+                    st.plotly_chart(fig)
+                    st.write("Description: This graph shows the total revenue by listing state based on the queried data.")
         else:
             st.write("Please enter a valid question.")
 
