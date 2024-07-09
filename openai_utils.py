@@ -39,14 +39,24 @@ def invoke_openai_response(prompt):
     answer = response.choices[0].message.content.strip()
     return answer
 
+
 def validate_sql_columns(sql_query, valid_columns):
     sql_keywords = {'SELECT', 'AS', 'FROM', 'WHERE', 'GROUP', 'BY', 'ORDER', 'DESC', 'LIMIT', 'SUM', 'AVG', 'COUNT'}
     sql_query_columns = [word.strip('`,') for word in sql_query.split() if word.strip('`,').isalpha() and word.upper() not in sql_keywords]
-    invalid_columns = [col for col in sql_query_columns if col.lower() not in [col.lower() for col in valid_columns]]
     
     corrected_query = sql_query
-    for invalid_col in invalid_columns:
-        if invalid_col.lower() in valid_columns:
-            corrected_col = valid_columns[valid_columns.index(invalid_col.lower())]
-            corrected_query = corrected_query.replace(invalid_col, corrected_col)
+    for col in sql_query_columns:
+        if col.lower() not in [vc.lower() for vc in valid_columns]:
+            corrected_query = corrected_query.replace(col, get_correct_column_name(col, valid_columns))
+    
     return corrected_query
+
+def get_correct_column_name(invalid_col, valid_columns):
+    lower_valid_columns = [vc.lower() for vc in valid_columns]
+    if invalid_col.lower() in lower_valid_columns:
+        return valid_columns[lower_valid_columns.index(invalid_col.lower())]
+    replacements = {
+        "revenue": "total_revenue",
+        "profit": "total_profit"
+    }
+    return replacements.get(invalid_col.lower(), invalid_col)
