@@ -2,7 +2,7 @@ import psycopg2
 import pandas as pd
 from openai_utils import validate_sql_columns
 from config import POSTGRESQL_HOST, POSTGRESQL_PORT, POSTGRESQL_USER, POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE
-from intents import valid_columns
+
 
 
 def create_pg_connection():

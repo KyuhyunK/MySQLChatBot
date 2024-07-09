@@ -1,7 +1,7 @@
 import streamlit as st
 import plotly.express as px
 from database import get_table_columns, run_query
-from intents import intents, valid_columns
+from intents import intents, handle_intent, valid_columns
 from openai_utils import invoke_openai_response, invoke_openai_sql, validate_sql_columns
 from config import OPENAI_API_KEY, POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE, column_descriptions
 import pandas as pd
@@ -48,11 +48,7 @@ def main():
                     break
 
             if matched_intent:
-                endpoint = matched_intent['endpoint']
-                params = matched_intent['params']
-                response = invoke_openai_response(f"Endpoint: {endpoint}, Params: {params}")
-                st.write("Model Response:")
-                st.json(response)
+                handle_intent(intent, st)
             else:
                 # Generate SQL query using OpenAI (or other method)
                 generated_sql_query = invoke_chain(user_question)  # Function to generate SQL query from user input
