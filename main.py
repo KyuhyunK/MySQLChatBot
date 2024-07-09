@@ -1,11 +1,12 @@
 import streamlit as st
 import plotly.express as px
+import torch
 import logging
 import requests
 from database import get_table_columns, run_query
 from intents import intents, valid_columns
 from openai_utils import invoke_openai_response, invoke_openai_sql, validate_sql_columns
-from config import OPENAI_API_KEY, POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE
+from config import OPENAI_API_KEY, POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE, column_descriptions
 import pandas as pd
 from sqlalchemy import create_engine
 
@@ -30,52 +31,6 @@ def invoke_chain(user_question, valid_columns):
     corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)
     return corrected_sql_query
 
-def main():
-    st.title("SQL Query Generator")
-
-    st.sidebar.title("Settings")
-    st.sidebar.write("Configure your database connection below:")
-
-    POSTGRESQL_HOST = st.sidebar.text_input("PostgreSQL Host", value=CONFIG_POSTGRESQL_HOST)
-    POSTGRESQL_USER = st.sidebar.text_input("PostgreSQL User", value=CONFIG_POSTGRESQL_USER)
-    POSTGRESQL_PASSWORD = st.sidebar.text_input("PostgreSQL Password", value=CONFIG_POSTGRESQL_PASSWORD)
-    POSTGRESQL_DATABASE = st.sidebar.text_input("PostgreSQL Database", value=CONFIG_POSTGRESQL_DATABASE)
-
-    try:
-        engine = create_engine(f'postgresql://{POSTGRESQL_USER}:{POSTGRESQL_PASSWORD}@{POSTGRESQL_HOST}/{POSTGRESQL_DATABASE}')
-        st.success("Connected to the database successfully.")
-    except Exception as e:
-        st.error(f"Error: {e}")
-
-    user_question = st.text_input("Enter your question about the database:")
-    if st.button('Submit'):
-        if user_question:
-            matched_intent = None
-            for intent in intents:
-                if any(pattern.lower() in user_question.lower() for pattern in intent['patterns']):
-                    matched_intent = intent
-                    break
-
-            if matched_intent:
-                endpoint = matched_intent['endpoint']
-                params = matched_intent['params']
-                response = invoke_openai_response(f"Endpoint: {endpoint}, Params: {params}")
-                st.write("Model Response:")
-                st.json(response)
-            else:
-                corrected_sql_query = invoke_chain(user_question, valid_columns=[])
-                df = run_query(corrected_sql_query)
-                response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query."
-                response = invoke_openai_response(response_prompt)
-                st.write("Generated SQL Query:")
-                st.code(corrected_sql_query)
-                if not df.empty:
-                    st.dataframe(df)
-                    graph_type = determine_graph_type(df)
-                    fig = create_plotly_graph(df, graph_type, df.columns[0], df.columns[1], f"{df.columns[1]} by {df.columns[0]}")
-                    st.plotly_chart(fig)
-                    st.write("Description: This graph shows the total revenue by listing state based on the queried data.")
-
 def determine_graph_type(df):
     if df.empty:
         return 'bar'
@@ -99,6 +54,57 @@ def create_plotly_graph(df, graph_type, x_col, y_col, title):
     else:
         fig = px.histogram(df, x=x_col, y=y_col, title=title)
     return fig
+
+def main():
+    st.title("SQL Query Generator")
+
+    st.sidebar.title("Settings")
+    st.sidebar.write("Configure your database connection below:")
+
+    POSTGRESQL_HOST = st.sidebar.text_input("PostgreSQL Host", value=CONFIG_POSTGRESQL_HOST)
+    POSTGRESQL_USER = st.sidebar.text_input("PostgreSQL User", value=CONFIG_POSTGRESQL_USER)
+    POSTGRESQL_PASSWORD = st.sidebar.text_input("PostgreSQL Password", value=CONFIG_POSTGRESQL_PASSWORD)
+    POSTGRESQL_DATABASE = st.sidebar.text_input("PostgreSQL Database", value=CONFIG_POSTGRESQL_DATABASE)
+
+    try:
+        engine = create_engine(f'postgresql://{POSTGRESQL_USER}:{POSTGRESQL_PASSWORD}@{POSTGRESQL_HOST}/{POSTGRESQL_DATABASE}')
+        st.success("Connected to the database successfully.")
+    except Exception as e:
+        st.error(f"Error: {e}")
+
+    if st.sidebar.button('Show Table Column Descriptions'):
+        st.sidebar.write("### Table Column Descriptions")
+        for column, description in column_descriptions.items():
+            st.sidebar.write(f"**{column}**: {description}")
+
+    user_question = st.text_input("Enter your question about the database:")
+    if st.button('Submit'):
+        if user_question:
+            matched_intent = None
+            for intent in intents:
+                if any(pattern.lower() in user_question.lower() for pattern in intent['patterns']):
+                    matched_intent = intent
+                    break
+
+            if matched_intent:
+                endpoint = matched_intent['endpoint']
+                params = matched_intent['params']
+                response = invoke_openai_response(f"Endpoint: {endpoint}, Params: {params}")
+                st.write("Model Response:")
+                st.json(response)
+            else:
+                corrected_sql_query = invoke_chain(user_question, valid_columns=valid_columns)
+                df = run_query(corrected_sql_query)
+                response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query."
+                response = invoke_openai_response(response_prompt)
+                st.write("Generated SQL Query:")
+                st.code(corrected_sql_query)
+                if not df.empty:
+                    st.dataframe(df)
+                    graph_type = determine_graph_type(df)
+                    fig = create_plotly_graph(df, graph_type, df.columns[0], df.columns[1], "Total Revenue by Listing State")
+                    st.plotly_chart(fig)
+                    st.write("Description: This graph shows the total revenue by listing state based on the queried data.")
 
 if __name__ == "__main__":
     main()
