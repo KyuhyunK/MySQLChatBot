@@ -56,7 +56,7 @@ def main():
             else:
                 corrected_sql_query = invoke_chain(user_question, valid_columns=[])
                 df = run_query(corrected_sql_query)
-                response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query."
+                response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query. Display the table generated from the query everytime it is available. Always show the graphs generated from plotly when applicable."
                 response = invoke_openai_response(response_prompt)
                 st.write("Generated SQL Query:")
                 st.code(corrected_sql_query)
