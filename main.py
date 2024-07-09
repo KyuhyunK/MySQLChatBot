@@ -71,10 +71,20 @@ def main():
                 st.code(corrected_sql_query)
                 if not df.empty:
                     st.dataframe(df)
-                    graph_type = 'bar'  # Replace this with your logic for determining the graph type
-                    fig = create_plotly_graph(df, graph_type, "listing_state", "total_revenue_by_listing_state", "Total Revenue by Listing State")
+                    graph_type = determine_graph_type(df, user_question)
+                    fig = create_plotly_graph(df, graph_type, "listing_state", "total_revenue", "Total Revenue by Listing State")
                     st.plotly_chart(fig)
                     st.write("Description: This graph shows the total revenue by listing state based on the queried data.")
+
+def determine_graph_type(df, user_question):
+    if len(df.columns) == 2:
+        if df.dtypes[1] in ['int64', 'float64']:
+            return 'bar'
+        elif df.dtypes[1] == 'object':
+            return 'scatter'
+    elif len(df.columns) > 2:
+        return 'line'
+    return 'bar'
 
 def create_plotly_graph(df, graph_type, x_col, y_col, title):
     if graph_type == 'bar':
