@@ -1,6 +1,9 @@
 import psycopg2
 import pandas as pd
+from openai_utils import validate_sql_columns
 from config import POSTGRESQL_HOST, POSTGRESQL_PORT, POSTGRESQL_USER, POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE
+from intents import valid_columns
+
 
 def create_pg_connection():
     connection = None
@@ -41,6 +44,7 @@ def get_table_columns():
     return columns_df
 
 def run_query(query):
+    query = validate_sql_columns(query, valid_columns)
     connection = create_pg_connection()
     if connection is None:
         print("Error: Connection to PostgreSQL is not established.")

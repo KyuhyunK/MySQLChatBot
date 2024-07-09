@@ -54,19 +54,19 @@ def main():
                 st.write("Model Response:")
                 st.json(response)
             else:
-                corrected_sql_query = invoke_chain(user_question, valid_columns=[])
+                # Generate SQL query using OpenAI (or other method)
+                generated_sql_query = invoke_chain(user_question)  # Function to generate SQL query from user input
+
+                # Validate the generated SQL query
+                corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)  # Validate the SQL query using the list of valid columns
+
+                # Run the validated query and display the results
                 df = run_query(corrected_sql_query)
-                response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query. Display the table generated from the query everytime it is available. Always show the graphs generated from plotly when applicable."
+                response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query. Display the table generated from the query every time it is available. Always show the graphs generated from plotly when applicable."
                 response = invoke_openai_response(response_prompt)
+                
                 st.write("Generated SQL Query:")
                 st.code(corrected_sql_query)
-                if not df.empty:
-                    st.write("Table:")
-                    st.dataframe(df)
-                    graph_type = 'bar'  # Replace this with your logic for determining the graph type
-                    fig = create_plotly_graph(df, graph_type, "listing_state", "total_revenue_by_state", "Total Revenue by Listing State")
-                    st.plotly_chart(fig)
-                    st.write("Description: This graph shows the total revenue by listing state based on the queried data.")
 
 def create_plotly_graph(df, graph_type, x_col, y_col, title):
     if graph_type == 'bar':
@@ -78,6 +78,17 @@ def create_plotly_graph(df, graph_type, x_col, y_col, title):
     else:
         fig = px.histogram(df, x=x_col, y=y_col, title=title)
     return fig
+
+def determine_graph_type(df):
+    if len(df.columns) == 2:
+        if df.columns[1].endswith('_revenue') or df.columns[1].endswith('_profit'):
+            return 'bar'
+        elif df.columns[1].endswith('_trend'):
+            return 'line'
+        else:
+            return 'scatter'
+    else:
+        return 'bar'
 
 if __name__ == "__main__":
     main()
