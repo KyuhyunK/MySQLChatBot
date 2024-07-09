@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 
 # Function to invoke the chain for generating SQL query and validating it
 def invoke_chain(user_question, valid_columns):
-    sql_query_prompt = f"Generate a SQL query for the following question: {user_question}. The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. Ensure the query includes the table name and the 'FROM' keyword. Use only valid columns from the following list: {', '.join(valid_columns)}. Display the query along with any tables and graphs that are related to the question. Then write a brief description about the graph/table. Keep your response concise and easy to understand."
+    sql_query_prompt = f"Generate a SQL query for the following question: {user_question}. The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. Ensure the query includes the table name and the 'FROM' keyword. Use only valid columns from the following list: {', '.join(valid_columns)}. Display the table generated from the query every time it is available. Always show the graphs generated from plotly when applicable. Then write a brief description about the graph/table. Keep your response concise and easy to understand."
     
     generated_sql_query = invoke_openai_sql(sql_query_prompt)
     corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)
@@ -57,7 +57,7 @@ def main():
 
                 # Run the validated query and display the results
                 df = run_query(corrected_sql_query)
-                response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query. Display the table generated from the query every time it is available. Always show the graphs generated from plotly when applicable."
+                response_prompt = f"User question: {user_question}\nSQL Query: {corrected_sql_query}\nGenerate a suitable explanation for this query."
                 response = invoke_openai_response(response_prompt)
                 
                 st.write("Generated SQL Query:")
