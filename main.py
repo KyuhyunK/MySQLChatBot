@@ -10,15 +10,9 @@ from config import OPENAI_API_KEY, POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, PO
 import pandas as pd
 from sqlalchemy import create_engine
 
-# Function to check internet connection
-def check_internet_connection():
-    url = "http://www.google.com"
-    timeout = 5
-    try:
-        request = requests.get(url, timeout=timeout)
-        return True
-    except (requests.ConnectionError, requests.Timeout) as exception:
-        return False
+
+if 'cache_cleared' not in st.session_state:
+    st.session_state.cache_cleared = False
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -46,6 +40,16 @@ def main():
         st.sidebar.write("Table Column Descriptions:")
         for column, description in column_descriptions.items():
             st.sidebar.write(f"**{column}**: {description}")
+
+
+#clear cache
+  if not st.session_state.cache_cleared:
+        if st.sidebar.button('Clear Cache and Reload'):
+            st.caching.clear_cache()
+            st.session_state.cache_cleared = True
+            st.success("Cache cleared and resources reloaded successfully.")
+
+
 
     try:
         engine = create_engine(f'postgresql://{POSTGRESQL_USER}:{POSTGRESQL_PASSWORD}@{POSTGRESQL_HOST}/{POSTGRESQL_DATABASE}')
