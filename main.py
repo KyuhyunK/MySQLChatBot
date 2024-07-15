@@ -9,10 +9,19 @@ from sqlalchemy import create_engine
 
 # Function to invoke the chain for generating SQL query and validating it
 def invoke_chain(user_question, valid_columns):
-    sql_query_prompt = f"Generate a SQL query for the following question: {user_question}. The default table name is 'profit_data', unless specified otherwise use this table name. Ensure the query includes the table name and the 'FROM' keyword. Use only valid columns from the following list: {', '.join(valid_columns)}."  
+    sql_query_prompt = f"Generate a SQL query for the following question: {user_question}. The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. Ensure the query includes the table name and the 'FROM' keyword. Use only valid columns from the following list: {', '.join(valid_columns)}."  
     generated_sql_query = invoke_openai_sql(sql_query_prompt)
     corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)
     return corrected_sql_query
+
+@st.cache
+def cached_run_query(query):
+    return run_query(query)
+
+def adjust_query(query):
+    # Ensure proper data type casting for numeric operations
+    query = re.sub(r'SUM\(([^)]+)\)', r'SUM(CAST(\1 AS numeric))', query)
+    return query
 
 def main():
     st.title("SQL Query Generator")
@@ -49,12 +58,13 @@ def main():
                 handle_intent(matched_intent, st)
             else:
                 # Generate SQL query using OpenAI (or other method)
-                generated_sql_query = invoke_chain(user_question, valid_columns)  # Pass valid_columns as the second argument
+                generated_sql_query = invoke_chain(user_question, valid_columns) 
+                adjusted_sql_query = adjust_query(generated_sql_query)
 
                 # Run the validated query and display the results
-                df = run_query(generated_sql_query)
+                df = cached_run_query(adjusted_sql_query)
                 response_prompt = (
-                        f"User question: {user_question}\nSQL Query: {generated_sql_query}\n"
+                        f"User question: {user_question}\nSQL Query: {adjusted_sql_query}\n"
                         "Generate a suitable explanation for this query. Use the following Python code on the result of the query to display the dedsired table:\n\n"
                         "st.dataframe(df)\n\n"
                         "Always show the graphs generated from plotly when applicable. "
@@ -64,7 +74,7 @@ def main():
                 response = invoke_openai_response(response_prompt)
                 
                 st.write("Generated SQL Query:")
-                st.code(generated_sql_query)
+                st.code(adjusted_sql_query)
                 
                 if not df.empty:
                     st.write("Table:")
