@@ -8,16 +8,18 @@ import pandas as pd
 from sqlalchemy import create_engine
 import re
 
+# Secret token
+SECRET_TOKEN = "happysun"
+
 # Function to invoke the chain for generating SQL query and validating it
 def invoke_chain(user_question, valid_columns):
     sql_query_prompt = (
-    f"Generate a SQL query for the following question: {user_question}. "
-    f"The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. "
-    f"Ensure the query includes the table name and the 'FROM' keyword. "
-    f"Use only valid columns from the following list: {', '.join(valid_columns)}. "
-    f"All columns are of type TEXT, so ensure numbers are enclosed in quotes in the query to handle them as text."
-)
-
+        f"Generate a SQL query for the following question: {user_question}. "
+        f"The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. "
+        f"Ensure the query includes the table name and the 'FROM' keyword. "
+        f"Use only valid columns from the following list: {', '.join(valid_columns)}. "
+        f"All columns are of type TEXT, so ensure numbers are enclosed in quotes in the query to handle them as text."
+    )
     generated_sql_query = invoke_openai_sql(sql_query_prompt)
     corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)
     return corrected_sql_query
@@ -43,78 +45,83 @@ def split_query_and_description(response):
     return query, description
 
 def main():
-    st.title("SQL Query Generator")
+    # Check for secret token in URL
+    query_params = st.experimental_get_query_params()
+    if "token" in query_params and query_params["token"][0] == SECRET_TOKEN:
+        st.title("SQL Query Generator")
 
-    st.sidebar.title("Settings")
-    st.sidebar.write("Configure your database connection below:")
+        st.sidebar.title("Settings")
+        st.sidebar.write("Configure your database connection below:")
 
-    POSTGRESQL_HOST = st.sidebar.text_input("PostgreSQL Host", value=CONFIG_POSTGRESQL_HOST)
-    POSTGRESQL_USER = st.sidebar.text_input("PostgreSQL User", value=CONFIG_POSTGRESQL_USER)
-    POSTGRESQL_PASSWORD = st.sidebar.text_input("PostgreSQL Password", value=CONFIG_POSTGRESQL_PASSWORD)
-    POSTGRESQL_DATABASE = st.sidebar.text_input("PostgreSQL Database", value=CONFIG_POSTGRESQL_DATABASE)
+        POSTGRESQL_HOST = st.sidebar.text_input("PostgreSQL Host", value=CONFIG_POSTGRESQL_HOST)
+        POSTGRESQL_USER = st.sidebar.text_input("PostgreSQL User", value=CONFIG_POSTGRESQL_USER)
+        POSTGRESQL_PASSWORD = st.sidebar.text_input("PostgreSQL Password", value=CONFIG_POSTGRESQL_PASSWORD)
+        POSTGRESQL_DATABASE = st.sidebar.text_input("PostgreSQL Database", value=CONFIG_POSTGRESQL_DATABASE)
 
-    if st.sidebar.button('Show Table Column Descriptions'):
-        st.sidebar.write("Table Column Descriptions:")
-        for column, description in column_descriptions.items():
-            st.sidebar.write(f"**{column}**: {description}")
+        if st.sidebar.button('Show Table Column Descriptions'):
+            st.sidebar.write("Table Column Descriptions:")
+            for column, description in column_descriptions.items():
+                st.sidebar.write(f"**{column}**: {description}")
 
-    try:
-        engine = create_engine(f'postgresql://{POSTGRESQL_USER}:{POSTGRESQL_PASSWORD}@{POSTGRESQL_HOST}/{POSTGRESQL_DATABASE}')
-        st.success("Connected to the database successfully.")
-    except Exception as e:
-        st.error(f"Error: {e}")
-        st.stop()  # Stop execution if connection fails
+        try:
+            engine = create_engine(f'postgresql://{POSTGRESQL_USER}:{POSTGRESQL_PASSWORD}@{POSTGRESQL_HOST}/{POSTGRESQL_DATABASE}')
+            st.success("Connected to the database successfully.")
+        except Exception as e:
+            st.error(f"Error: {e}")
+            st.stop()  # Stop execution if connection fails
 
-    user_question = st.text_input("Enter your question about the database:")
-    if st.button('Submit'):
-        if user_question:
-            matched_intent = None
-            for intent in intents:
-                if any(pattern.lower() in user_question.lower() for pattern in intent['patterns']):
-                    matched_intent = intent
-                    break
+        user_question = st.text_input("Enter your question about the database:")
+        if st.button('Submit'):
+            if user_question:
+                matched_intent = None
+                for intent in intents:
+                    if any(pattern.lower() in user_question.lower() for pattern in intent['patterns']):
+                        matched_intent = intent
+                        break
 
-            if matched_intent:
-                handle_intent(matched_intent, st)
-            else:
-                # Generate SQL query using OpenAI (or other method)
-                generated_sql_query = invoke_chain(user_question, valid_columns)
-                adjusted_sql_query = adjust_query(generated_sql_query)
-
-                # Remove backticks from the generated SQL query
-                adjusted_sql_query = remove_backticks(adjusted_sql_query)
-                
-                # Split the query and description if present
-                final_query, query_description = split_query_and_description(adjusted_sql_query)
-
-                # Display the generated SQL query without backticks
-                st.write("Generated SQL Query:")
-                st.code(final_query)
-
-                # Run the validated query and display the results
-                df = cached_run_query(final_query)
-                st.write(f"DataFrame shape: {df.shape}")
-
-                if not df.empty:
-                    st.write("Table:")
-                    st.dataframe(df)
-
-                    st.write("Query Description:")
-                    st.write(query_description)
-
-                    # Determine columns for dynamic plotting
-                    columns = df.columns
-                    if len(columns) >= 2:
-                        x_col = columns[0]
-                        y_col = columns[1]
-                        graph_type = determine_graph_type(df)
-                        fig = create_plotly_graph(df, graph_type, x_col, y_col, f"Graph for {x_col} vs {y_col}")
-                        st.plotly_chart(fig)
-                        st.write(f"Description: This graph shows the relationship between {x_col} and {y_col} based on the queried data.")
+                if matched_intent:
+                    handle_intent(matched_intent, st)
                 else:
-                    st.write("No data returned from the query.")
-        else:
-            st.write("Please enter a valid question.")
+                    # Generate SQL query using OpenAI (or other method)
+                    generated_sql_query = invoke_chain(user_question, valid_columns)
+                    adjusted_sql_query = adjust_query(generated_sql_query)
+
+                    # Remove backticks from the generated SQL query
+                    adjusted_sql_query = remove_backticks(adjusted_sql_query)
+                    
+                    # Split the query and description if present
+                    final_query, query_description = split_query_and_description(adjusted_sql_query)
+
+                    # Display the generated SQL query without backticks
+                    st.write("Generated SQL Query:")
+                    st.code(final_query)
+
+                    # Run the validated query and display the results
+                    df = cached_run_query(final_query)
+                    st.write(f"DataFrame shape: {df.shape}")
+
+                    if not df.empty:
+                        st.write("Table:")
+                        st.dataframe(df)
+
+                        st.write("Query Description:")
+                        st.write(query_description)
+
+                        # Determine columns for dynamic plotting
+                        columns = df.columns
+                        if len(columns) >= 2:
+                            x_col = columns[0]
+                            y_col = columns[1]
+                            graph_type = determine_graph_type(df)
+                            fig = create_plotly_graph(df, graph_type, x_col, y_col, f"Graph for {x_col} vs {y_col}")
+                            st.plotly_chart(fig)
+                            st.write(f"Description: This graph shows the relationship between {x_col} and {y_col} based on the queried data.")
+                    else:
+                        st.write("No data returned from the query.")
+            else:
+                st.write("Please enter a valid question.")
+    else:
+        st.error("Unauthorized access. Please use the correct link to access this application.")
 
 def create_plotly_graph(df, graph_type, x_col, y_col, title):
     if graph_type == 'bar':
