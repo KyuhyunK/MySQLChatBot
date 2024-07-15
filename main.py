@@ -10,7 +10,7 @@ import re
 
 # Function to invoke the chain for generating SQL query and validating it
 def invoke_chain(user_question, valid_columns):
-    sql_query_prompt = f"Generate a SQL query for the following question: {user_question}. The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. Ensure the query includes the table name and the 'FROM' keyword. Use only valid columns from the following list: {', '.join(valid_columns)}."  
+    sql_query_prompt = f"Generate a SQL query for the following question: {user_question}. The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. Ensure the query includes the table name and the 'FROM' keyword. Use only valid columns from the following list: {', '.join(valid_columns)}."
     generated_sql_query = invoke_openai_sql(sql_query_prompt)
     corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)
     return corrected_sql_query
@@ -45,6 +45,7 @@ def main():
         st.success("Connected to the database successfully.")
     except Exception as e:
         st.error(f"Error: {e}")
+        st.stop()  # Stop execution if connection fails
 
     user_question = st.text_input("Enter your question about the database:")
     if st.button('Submit'):
@@ -59,29 +60,19 @@ def main():
                 handle_intent(matched_intent, st)
             else:
                 # Generate SQL query using OpenAI (or other method)
-                generated_sql_query = invoke_chain(user_question, valid_columns) 
+                generated_sql_query = invoke_chain(user_question, valid_columns)
                 adjusted_sql_query = adjust_query(generated_sql_query)
+
+                # Display the generated SQL query
+                st.write("Generated SQL Query:")
+                st.code(adjusted_sql_query)
 
                 # Run the validated query and display the results
                 df = cached_run_query(adjusted_sql_query)
-
                 st.write(f"DataFrame shape: {df.shape}")
                 st.write("DataFrame content:")
                 st.write(df)
 
-                response_prompt = (
-                    f"User question: {user_question}\nSQL Query: {adjusted_sql_query}\n"
-                    "Generate a suitable explanation for this query. Use the following Python code on the result of the query to display the desired table:\n\n"
-                    "st.dataframe(df)\n\n"
-                    "Always show the graphs generated from plotly when applicable. "
-                    "Then write a brief description about the graph/table. Keep your response concise and easy to understand."
-                )
-
-                response = invoke_openai_response(response_prompt)
-                
-                st.write("Generated SQL Query:")
-                st.code(adjusted_sql_query)
-                
                 if not df.empty:
                     st.write("Table:")
                     st.dataframe(df)
