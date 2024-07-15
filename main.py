@@ -22,8 +22,18 @@ def cached_run_query(query):
 def adjust_query(query):
     # Ensure proper data type casting for numeric operations
     query = re.sub(r'SUM\(([^)]+)\)', r'SUM(CAST(\1 AS numeric))', query)
-    query.replace('```', '')
     return query
+
+def remove_backticks(query):
+    # Remove any backticks from the query string
+    return query.replace('`', '')
+
+def split_query_and_description(response):
+    # Split the response into query and description parts
+    parts = response.split("```")
+    query = parts[0].strip()
+    description = parts[1].strip() if len(parts) > 1 else ""
+    return query, description
 
 def main():
     st.title("SQL Query Generator")
@@ -64,12 +74,18 @@ def main():
                 generated_sql_query = invoke_chain(user_question, valid_columns)
                 adjusted_sql_query = adjust_query(generated_sql_query)
 
-                # Display the generated SQL query
+                # Remove backticks from the generated SQL query
+                adjusted_sql_query = remove_backticks(adjusted_sql_query)
+                
+                # Split the query and description if present
+                final_query, query_description = split_query_and_description(adjusted_sql_query)
+
+                # Display the generated SQL query without backticks
                 st.write("Generated SQL Query:")
-                st.code(adjusted_sql_query)
+                st.code(final_query)
 
                 # Run the validated query and display the results
-                df = cached_run_query(adjusted_sql_query)
+                df = cached_run_query(final_query)
                 st.write(f"DataFrame shape: {df.shape}")
                 st.write("DataFrame content:")
                 st.write(df)
@@ -79,10 +95,18 @@ def main():
                     st.dataframe(df)
                     st.write("Dataframe content:")
                     st.write(df.head())
-                    graph_type = determine_graph_type(df)
-                    fig = create_plotly_graph(df, graph_type, "listing_state", "total_revenue", "Total Revenue by Listing State")
-                    st.plotly_chart(fig)
-                    st.write("Description: This graph shows the total revenue by listing state based on the queried data.")
+                    st.write("Query Description:")
+                    st.write(query_description)
+
+                    # Determine columns for dynamic plotting
+                    columns = df.columns
+                    if len(columns) >= 2:
+                        x_col = columns[0]
+                        y_col = columns[1]
+                        graph_type = determine_graph_type(df)
+                        fig = create_plotly_graph(df, graph_type, x_col, y_col, f"Graph for {x_col} vs {y_col}")
+                        st.plotly_chart(fig)
+                        st.write(f"Description: This graph shows the relationship between {x_col} and {y_col} based on the queried data.")
                 else:
                     st.write("No data returned from the query.")
         else:
