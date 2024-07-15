@@ -87,14 +87,11 @@ def main():
                 # Run the validated query and display the results
                 df = cached_run_query(final_query)
                 st.write(f"DataFrame shape: {df.shape}")
-                st.write("DataFrame content:")
-                st.write(df)
 
                 if not df.empty:
                     st.write("Table:")
                     st.dataframe(df)
-                    st.write("Dataframe content:")
-                    st.write(df.head())
+
                     st.write("Query Description:")
                     st.write(query_description)
 
