@@ -6,4 +6,3 @@ transformers==4.24.0
 sqlalchemy
 openai>=1.0.0
 python-dotenv
-re
