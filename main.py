@@ -64,6 +64,11 @@ def main():
 
                 # Run the validated query and display the results
                 df = cached_run_query(adjusted_sql_query)
+
+                st.write(f"DataFrame shape: {df.shape}")
+                st.write("DataFrame content:")
+                st.write(df)
+
                 response_prompt = (
                     f"User question: {user_question}\nSQL Query: {adjusted_sql_query}\n"
                     "Generate a suitable explanation for this query. Use the following Python code on the result of the query to display the desired table:\n\n"
