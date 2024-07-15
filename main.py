@@ -65,12 +65,12 @@ def main():
                 # Run the validated query and display the results
                 df = cached_run_query(adjusted_sql_query)
                 response_prompt = (
-                        f"User question: {user_question}\nSQL Query: {adjusted_sql_query}\n"
-                        "Generate a suitable explanation for this query. Use the following Python code on the result of the query to display the dedsired table:\n\n"
-                        "st.dataframe(df)\n\n"
-                        "Always show the graphs generated from plotly when applicable. "
-                        "Then write a brief description about the graph/table. Keep your response concise and easy to understand."
-                    )
+                    f"User question: {user_question}\nSQL Query: {adjusted_sql_query}\n"
+                    "Generate a suitable explanation for this query. Use the following Python code on the result of the query to display the desired table:\n\n"
+                    "st.dataframe(df)\n\n"
+                    "Always show the graphs generated from plotly when applicable. "
+                    "Then write a brief description about the graph/table. Keep your response concise and easy to understand."
+                )
 
                 response = invoke_openai_response(response_prompt)
                 
@@ -86,6 +86,8 @@ def main():
                     fig = create_plotly_graph(df, graph_type, "listing_state", "total_revenue", "Total Revenue by Listing State")
                     st.plotly_chart(fig)
                     st.write("Description: This graph shows the total revenue by listing state based on the queried data.")
+                else:
+                    st.write("No data returned from the query.")
         else:
             st.write("Please enter a valid question.")
 
