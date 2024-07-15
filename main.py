@@ -6,6 +6,7 @@ from openai_utils import invoke_openai_response, invoke_openai_sql, validate_sql
 from config import OPENAI_API_KEY, POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE, column_descriptions
 import pandas as pd
 from sqlalchemy import create_engine
+import re
 
 # Function to invoke the chain for generating SQL query and validating it
 def invoke_chain(user_question, valid_columns):
@@ -14,7 +15,7 @@ def invoke_chain(user_question, valid_columns):
     corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)
     return corrected_sql_query
 
-@st.cache
+@st.cache_data
 def cached_run_query(query):
     return run_query(query)
 
