@@ -22,6 +22,7 @@ def cached_run_query(query):
 def adjust_query(query):
     # Ensure proper data type casting for numeric operations
     query = re.sub(r'SUM\(([^)]+)\)', r'SUM(CAST(\1 AS numeric))', query)
+    query.replace('```', '')
     return query
 
 def main():
