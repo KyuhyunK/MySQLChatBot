@@ -68,7 +68,9 @@ def main():
                 
                 if not df.empty:
                     st.write("Table:")
-                    st.dataframe(df)  # Use Streamlit's dataframe to display the dataframe
+                    st.dataframe(df)  
+		    st.write("Dataframe content:")
+                    st.write(df.head())
                     graph_type = determine_graph_type(df)
                     fig = create_plotly_graph(df, graph_type, "listing_state", "total_revenue", "Total Revenue by Listing State")
                     st.plotly_chart(fig)
