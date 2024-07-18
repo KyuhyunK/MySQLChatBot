@@ -7,3 +7,5 @@ sqlalchemy
 openai==0.27.8
 python-dotenv
 spacy==3.4.0
+thinc==8.0.0 
+numpy==1.21.0
