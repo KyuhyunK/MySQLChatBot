@@ -3,7 +3,16 @@ from database import run_query
 import spacy
 
 
-nlp = spacy.load("en_core_web_sm")
+def load_spacy_model(model_name):
+    try:
+        nlp = spacy.load(model_name)
+    except OSError:
+        from spacy.cli import download
+        download(model_name)
+        nlp = spacy.load(model_name)
+    return nlp
+
+nlp = load_spacy_model("en_core_web_sm")
 
 intents = [
     {
