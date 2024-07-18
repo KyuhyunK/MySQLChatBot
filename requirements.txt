@@ -3,4 +3,4 @@ pandas==1.5.3
 plotly==5.15.0
 psycopg2-binary==2.9.6
 spacy==3.4.0
-openai==0.27.6
+openai==0.27.2
