@@ -1,5 +1,9 @@
 import plotly.express as px
 from database import run_query
+import spacy
+
+
+nlp = spacy.load("en_core_web_sm")
 
 intents = [
     {
@@ -133,6 +137,32 @@ intents = [
     {
         "intent": "Revenue for a Specific Listing State",
         "patterns": ["revenue for listing state", "listing state revenue"]
+    },
+    {
+        "tag": "evaluate_products",
+        "patterns": [
+            "Which products are worth buying again?",
+            "Evaluate products based on return rates and profitability.",
+            "Should I restock these products?"
+        ],
+        "responses": [
+            "Evaluating products based on return rate and profitability.",
+            "Let me analyze the return rates and profitability to determine the best products to restock.",
+            "Analyzing products to see which are worth buying again based on returns and profits."
+        ]
+    },
+    {
+        "tag": "analyze_return_rate",
+        "patterns": [
+            "What is the optimal return rate threshold?",
+            "Analyze return rates to find the optimal threshold.",
+            "Determine the return rate threshold for profitability."
+        ],
+        "responses": [
+            "Analyzing return rates to determine the optimal threshold.",
+            "Let me calculate the return rate threshold for profitability.",
+            "Calculating the best return rate threshold based on profitability."
+        ]
     }
 ]
 valid_columns = [
@@ -192,3 +222,23 @@ def handle_intent(intent, st):
     elif intent == 'Revenue for a Specific Listing State':
         df, _ = run_query("SELECT listing_state, total_revenue FROM aggregate_profit_data WHERE listing_state = 'example_state';")
         st.dataframe(df)
+
+    elif intent == 'evaluate_products':
+        df, _ = run_query("SELECT year, sku, SUM(total_profit) as total_profit, AVG(return_rate) as return_rate, SUM(profit_after_returns) as profit_after_returns FROM aggregate_profit_data GROUP BY year, sku;")
+        df['profitability_score'] = df['profit_after_returns'] - (df['return_rate'] * df['total_profit'] / 100)
+        threshold = df['profitability_score'].mean()
+        st.write(f"Automatically determined profitability score threshold: {threshold:.2f}")
+        df = df[df['profitability_score'] > threshold]
+        st.dataframe(df)
+        fig = px.scatter(df, x='return_rate', y='profit_after_returns', color='profitability_score', title='Return Rate vs Profit After Returns')
+        st.plotly_chart(fig)
+
+    elif intent == 'analyze_return_rate':
+        df, _ = run_query("SELECT year, sku, return_rate, SUM(total_profit) as total_profit FROM aggregate_profit_data GROUP BY year, sku;")
+        df['return_rate_threshold'] = df['total_profit'] / df['return_rate']
+        optimal_threshold = df['return_rate_threshold'].mean()
+        st.write(f"Automatically determined return rate threshold: {optimal_threshold:.2f}")
+        df = df[df['return_rate'] < optimal_threshold]
+        st.dataframe(df)
+        fig = px.scatter(df, x='return_rate', y='total_profit', color='return_rate_threshold', title='Return Rate vs Total Profit')
+        st.plotly_chart(fig)
