@@ -4,5 +4,5 @@ plotly==5.3.1
 psycopg2-binary==2.9.5
 spacy==3.1.4
 thinc==8.0.17
-numpy==1.21.0
+numpy==1.21.2
 openai==0.27.8
