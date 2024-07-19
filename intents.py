@@ -1,18 +1,8 @@
 import plotly.express as px
 from database import run_query
-import spacy
+from transformers import pipeline
 
-
-def load_spacy_model(model_name):
-    try:
-        nlp = spacy.load(model_name)
-    except OSError:
-        from spacy.cli import download
-        download(model_name)
-        nlp = spacy.load(model_name)
-    return nlp
-
-nlp = load_spacy_model("en_core_web_sm")
+sentiment_analyzer = pipeline("sentiment-analysis")
 
 intents = [
     {
@@ -242,6 +232,10 @@ def handle_intent(intent, st):
         fig = px.scatter(df, x='return_rate', y='profit_after_returns', color='profitability_score', title='Return Rate vs Profit After Returns')
         st.plotly_chart(fig)
 
+        st.subheader("Sentiment Analysis on Product Feedback")
+        df['sentiment'] = df['feedback_text'].apply(lambda text: sentiment_analyzer(text)[0]['label'])
+        st.dataframe(df[['sku', 'feedback_text', 'sentiment']])
+
     elif intent == 'analyze_return_rate':
         df, _ = run_query("SELECT year, sku, return_rate, SUM(total_profit) as total_profit FROM aggregate_profit_data GROUP BY year, sku;")
         df['return_rate_threshold'] = df['total_profit'] / df['return_rate']
@@ -251,3 +245,7 @@ def handle_intent(intent, st):
         st.dataframe(df)
         fig = px.scatter(df, x='return_rate', y='total_profit', color='return_rate_threshold', title='Return Rate vs Total Profit')
         st.plotly_chart(fig)
+
+        st.subheader("Sentiment Analysis on Product Feedback")
+        df['sentiment'] = df['feedback_text'].apply(lambda text: sentiment_analyzer(text)[0]['label'])
+        st.dataframe(df[['sku', 'feedback_text', 'sentiment']])
