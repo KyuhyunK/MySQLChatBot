@@ -1,6 +1,16 @@
 import plotly.express as px
 from database import run_query
+import re
 
+
+def extract_year_and_quarter(question):
+    year_match = re.search(r'202\d+', question)
+    quarter_match = re.search(r'Q[1-4]', question)
+    
+    year = year_match.group(0) if year_match else None
+    quarter = quarter_match.group(0)[1] if quarter_match else None  # Extract number only
+    
+    return year, quarter
 
 intents = [
     {
@@ -187,6 +197,9 @@ valid_columns = [
 ]
 
 def handle_intent(intent, st):
+
+    year, quarter = extract_year_and_quarter(question)
+
     if intent == 'Get Total Revenue by SKU':
         df, _ = run_query("SELECT sku, total_revenue FROM aggregate_profit_data ORDER BY total_revenue DESC;")
         st.dataframe(df)
