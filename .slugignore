@@ -7,3 +7,6 @@ __pycache__
 .git
 .github
 .gitignore
+tests
+docs
+examples
