@@ -4,6 +4,5 @@ plotly
 psycopg2-binary
 transformers
 tensorflow
-torch
 openai
 python-dotenv
