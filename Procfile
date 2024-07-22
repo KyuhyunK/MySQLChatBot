@@ -1,2 +1,1 @@
-web: sh -c 'PORT=${PORT:-8501} && streamlit run main.py --server.port $PORT'
-v
+web: sh -c 'streamlit run main.py --server.port=$PORT'
