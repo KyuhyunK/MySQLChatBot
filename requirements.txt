@@ -6,3 +6,4 @@ openai
 python-dotenv
 boto3
 nltk
+sqlalchemy
