@@ -1,5 +1,3 @@
-Sure, here is an example of a `README.md` file for your project:
-
 ```markdown
 # AI Chat Interface for MySQL Database
 
