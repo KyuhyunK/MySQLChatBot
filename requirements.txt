@@ -3,5 +3,7 @@ pandas
 plotly
 psycopg2-binary
 transformers
+tensorflow==2.11.0
+torch==2.0.1
 openai
 python-dotenv
