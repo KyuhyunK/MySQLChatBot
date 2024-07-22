@@ -1,8 +1,6 @@
 import plotly.express as px
 from database import run_query
-from transformers import pipeline
 
-sentiment_analyzer = pipeline("sentiment-analysis")
 
 intents = [
     {
@@ -162,6 +160,19 @@ intents = [
             "Let me calculate the return rate threshold for profitability.",
             "Calculating the best return rate threshold based on profitability."
         ]
+    },
+    {
+        "tag": "compare_top_products",
+        "patterns": [
+            "Compare top products for 2023 and 2024",
+            "Show me the top products for 2023 and 2024",
+            "Which products were the best in 2023 and 2024?"
+        ],
+        "responses": [
+            "Comparing the top products for 2023 and 2024 based on profit after returns, ordered items, and return items."
+        ],
+        "intent": "Compare Top Products for 2023 and 2024",
+        "patterns": ["compare top products", "top products 2023 and 2024"]
     }
 ]
 valid_columns = [
@@ -249,3 +260,54 @@ def handle_intent(intent, st):
         st.subheader("Sentiment Analysis on Product Feedback")
         df['sentiment'] = df['feedback_text'].apply(lambda text: sentiment_analyzer(text)[0]['label'])
         st.dataframe(df[['sku', 'feedback_text', 'sentiment']])
+
+    elif intent == 'Compare Top Products for 2023 and 2024':
+        query_2023 = """
+            SELECT 
+                sku, 
+                SUM(profit_after_returns::numeric) AS total_profit_after_returns_2023,
+                SUM(total_ordered_items::numeric) AS total_ordered_items_2023,
+                SUM(return_items::numeric) AS return_items_2023
+            FROM 
+                aggregate_profit_data
+            WHERE 
+                year = '2023' AND quarter IN ('1', '2')
+            GROUP BY 
+                sku
+            ORDER BY 
+                total_profit_after_returns_2023 DESC
+            LIMIT 100;
+        """
+        
+        query_2024 = """
+            SELECT 
+                sku, 
+                SUM(profit_after_returns::numeric) AS total_profit_after_returns_2024,
+                SUM(total_ordered_items::numeric) AS total_ordered_items_2024,
+                SUM(return_items::numeric) AS return_items_2024
+            FROM 
+                aggregate_profit_data
+            WHERE 
+                year = '2024' AND quarter IN ('1', '2')
+            GROUP BY 
+                sku
+            ORDER BY 
+                total_profit_after_returns_2024 DESC
+            LIMIT 100;
+        """
+
+        df_2023, _ = run_query(query_2023)
+        df_2024, _ = run_query(query_2024)
+
+        st.write("### Top 100 SKUs for 2023")
+        st.dataframe(df_2023)
+
+        st.write("### Top 100 SKUs for 2024")
+        st.dataframe(df_2024)
+
+        st.write("### Comparison of Top 100 SKUs for 2023 and 2024")
+        fig = px.bar(df_2023, x='sku', y='total_profit_after_returns_2023', title='Top 100 SKUs for 2023')
+        st.plotly_chart(fig)
+
+        fig = px.bar(df_2024, x='sku', y='total_profit_after_returns_2024', title='Top 100 SKUs for 2024')
+        st.plotly_chart(fig)

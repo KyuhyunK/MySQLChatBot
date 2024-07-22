@@ -6,6 +6,11 @@ from openai_utils import invoke_openai_response, invoke_openai_sql, validate_sql
 from config import OPENAI_API_KEY, POSTGRESQL_HOST as CONFIG_POSTGRESQL_HOST, POSTGRESQL_USER as CONFIG_POSTGRESQL_USER, POSTGRESQL_PASSWORD as CONFIG_POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE as CONFIG_POSTGRESQL_DATABASE, column_descriptions
 from sqlalchemy import create_engine
 import re
+import nltk
+from nltk.tokenize import word_tokenize
+
+# Download the necessary NLTK data files
+nltk.download('punkt')
 
 # Secret token
 SECRET_TOKEN = "happysun"
