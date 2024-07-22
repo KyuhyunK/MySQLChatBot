@@ -1,4 +1,4 @@
-```markdown
+
 # AI Chat Interface for MySQL Database
 
 Welcome to the AI Chat Interface for MySQL Database! This project allows users to interact with a MySQL database using natural language queries. It uses OpenAI's GPT-3.5 to generate SQL queries and visualizes the results using Plotly and Streamlit.
@@ -29,15 +29,15 @@ my_app/
 ## Setup Instructions
 
 1. **Clone the Repository**:
-   ```sh
+
    git clone https://github.com/yourusername/yourrepository.git
    cd yourrepository
-   ```
+
 
 2. **Install Dependencies**:
-   ```sh
+
    pip install -r requirements.txt
-   ```
+
 
 3. **Create a `.env` File**:
    Create a `.env` file in the root directory with the following content:
@@ -51,9 +51,9 @@ my_app/
 
 4. **Run the Streamlit App**:
    Navigate to your project directory and run the Streamlit app using the following command:
-   ```sh
+
    streamlit run main.py
-   ```
+
 
 ## Usage
 
