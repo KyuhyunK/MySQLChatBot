@@ -261,51 +261,120 @@ def handle_intent(intent, st):
         st.dataframe(df[['sku', 'feedback_text', 'sentiment']])
 
     elif intent == 'analyze_return_rate':
-        df = run_query("SELECT year, sku, return_rate, SUM(total_profit::numeric) as total_profit FROM aggregate_profit_data GROUP BY year, sku;")
-        df['return_rate_threshold'] = df['total_profit'] / df['return_rate']
-        optimal_threshold = df['return_rate_threshold'].mean()
-        st.write(f"Automatically determined return rate threshold: {optimal_threshold:.2f}")
-        df = df[df['return_rate'] < optimal_threshold]
+        df, _ = run_query("SELECT year, sku, return_rate, SUM(total_profit::numeric) as total_profit FROM aggregate_profit_data GROUP BY year, sku;")
+        positive_profit_df = df[df['total_profit'] > 0]
+        avg_return_rate = positive_profit_df['return_rate'].mean()
+        df['return_rate_label'] = df['return_rate'].apply(lambda x: 'Below Threshold' if x < avg_return_rate else 'Above Threshold')
+        st.write(f"Automatically determined average return rate threshold: {avg_return_rate:.2f}")
         st.dataframe(df)
-        fig = px.scatter(df, x='return_rate', y='total_profit', color='return_rate_threshold', title='Return Rate vs Total Profit')
+        fig = px.scatter(df, x='return_rate', y='total_profit', color='return_rate_label', title='Return Rate vs Total Profit')
         st.plotly_chart(fig)
 
-    elif intent == 'Compare Top Products for 2023 and 2024':
-        if year and quarter:
-            query_template = """
+
+    elif intent == 'Compare Top Products for 2023 and 2024' and '2023' in years and '2024' in years:
+        if '1' in quarters or '2' in quarters:
+            best_sellers_query_template = """
+                WITH Best_Sellers_2023 AS (
+                    SELECT 
+                        sku, 
+                        SUM(profit_after_returns::numeric) AS total_profit_after_returns_2023,
+                        SUM(total_ordered_items::numeric) AS total_ordered_items_2023,
+                        SUM(return_items::numeric) AS return_items_2023
+                    FROM 
+                        aggregate_profit_data
+                    WHERE 
+                        year = '2023' AND quarter IN ('1', '2')
+                    GROUP BY 
+                        sku
+                    ORDER BY 
+                        total_profit_after_returns_2023 DESC
+                    LIMIT 100
+                ),
+                Performance_2023_in_2024 AS (
+                    SELECT 
+                        s.sku, 
+                        SUM(s.profit_after_returns::numeric) AS total_profit_after_returns_2024,
+                        SUM(s.total_ordered_items::numeric) AS total_ordered_items_2024,
+                        SUM(s.return_items::numeric) AS return_items_2024
+                    FROM 
+                        aggregate_profit_data s
+                    WHERE 
+                        s.year = '2024' AND s.quarter IN ('1', '2') 
+                        AND s.sku IN (SELECT sku FROM Best_Sellers_2023)
+                    GROUP BY 
+                        s.sku
+                ),
+                Best_Sellers_2024 AS (
+                    SELECT 
+                        sku, 
+                        SUM(profit_after_returns::numeric) AS total_profit_after_returns_2024,
+                        SUM(total_ordered_items::numeric) AS total_ordered_items_2024,
+                        SUM(return_items::numeric) AS return_items_2024
+                    FROM 
+                        aggregate_profit_data
+                    WHERE 
+                        year = '2024' AND quarter IN ('1', '2')
+                    GROUP BY 
+                        sku
+                    ORDER BY 
+                        total_profit_after_returns_2024 DESC
+                    LIMIT 100
+                ),
+                Performance_2024_in_2023 AS (
+                    SELECT 
+                        s.sku, 
+                        SUM(s.profit_after_returns::numeric) AS total_profit_after_returns_2023,
+                        SUM(s.total_ordered_items::numeric) AS total_ordered_items_2023,
+                        SUM(s.return_items::numeric) AS return_items_2023
+                    FROM 
+                        aggregate_profit_data s
+                    WHERE 
+                        s.year = '2023' AND s.quarter IN ('1', '2') 
+                        AND s.sku IN (SELECT sku FROM Best_Sellers_2024)
+                    GROUP BY 
+                        s.sku
+                )
                 SELECT 
-                    sku, 
-                    SUM(profit_after_returns::numeric) AS total_profit_after_returns,
-                    SUM(total_ordered_items::numeric) AS total_ordered_items,
-                    SUM(return_items::numeric) AS return_items
+                    COALESCE(b23.sku, p23_24.sku) AS sku,
+                    b23.total_profit_after_returns_2023,
+                    b23.total_ordered_items_2023,
+                    b23.return_items_2023,
+                    p23_24.total_profit_after_returns_2024,
+                    p23_24.total_ordered_items_2024,
+                    p23_24.return_items_2024
                 FROM 
-                    aggregate_profit_data
-                WHERE 
-                    year = '{year}' AND quarter = '{quarter}'
-                GROUP BY 
-                    sku
+                    Best_Sellers_2023 b23
+                LEFT JOIN 
+                    Performance_2023_in_2024 p23_24 ON b23.sku = p23_24.sku
+                UNION ALL
+                SELECT 
+                    COALESCE(b24.sku, p24_23.sku) AS sku,
+                    p24_23.total_profit_after_returns_2023,
+                    p24_23.total_ordered_items_2023,
+                    p24_23.return_items_2023,
+                    b24.total_profit_after_returns_2024,
+                    b24.total_ordered_items_2024,
+                    b24.return_items_2024
+                FROM 
+                    Best_Sellers_2024 b24
+                LEFT JOIN 
+                    Performance_2024_in_2023 p24_23 ON b24.sku = p24_23.sku
                 ORDER BY 
-                    total_profit_after_returns DESC
-                LIMIT 100;
+                    sku;
             """
 
-            query_2023 = query_template.format(year='2023', quarter=quarter)
-            query_2024 = query_template.format(year='2024', quarter=quarter)
+            df, _ = run_query(best_sellers_query_template)
+            st.write("### Comparison of Best Sellers of 2023 Q1 & Q2 with their performance in 2024 Q1 & Q2")
+            st.dataframe(df)
+            
+            fig = px.bar(df, x='sku', y=['total_profit_after_returns_2023', 'total_profit_after_returns_2024'], title='Profit Comparison')
+            st.plotly_chart(fig)
+            
+            fig = px.bar(df, x='sku', y=['total_ordered_items_2023', 'total_ordered_items_2024'], title='Ordered Items Comparison')
+            st.plotly_chart(fig)
+            
+            fig = px.bar(df, x='sku', y=['return_items_2023', 'return_items_2024'], title='Return Items Comparison')
+            st.plotly_chart(fig)
 
-            df_2023 = run_query(query_2023)
-            df_2024 = run_query(query_2024)
-
-            st.write(f"### Top 100 SKUs for 2023 (Q{quarter})")
-            st.dataframe(df_2023)
-
-            st.write(f"### Top 100 SKUs for 2024 (Q{quarter})")
-            st.dataframe(df_2024)
-
-            st.write(f"### Comparison of Top 100 SKUs for 2023 and 2024 (Q{quarter})")
-            fig_2023 = px.bar(df_2023, x='sku', y='total_profit_after_returns', title=f'Top 100 SKUs for 2023 (Q{quarter})')
-            st.plotly_chart(fig_2023)
-
-            fig_2024 = px.bar(df_2024, x='sku', y='total_profit_after_returns', title=f'Top 100 SKUs for 2024 (Q{quarter})')
-            st.plotly_chart(fig_2024)
-        else:
-            st.write("Please specify the year and quarter in the question.")
+    else:
+        st.write("Please specify the year and quarter in the question.")
