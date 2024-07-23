@@ -260,7 +260,7 @@ def handle_intent(intent, st):
         df['sentiment'] = df['feedback_text'].apply(lambda text: sentiment_analyzer(text)[0]['label'])
         st.dataframe(df[['sku', 'feedback_text', 'sentiment']])
 
-   elif intent == 'analyze_return_rate':
+    elif intent == 'analyze_return_rate':
         df = run_query("SELECT year, sku, return_rate, SUM(total_profit::numeric) as total_profit FROM aggregate_profit_data GROUP BY year, sku;")
         df['return_rate_threshold'] = df['total_profit'] / df['return_rate']
         optimal_threshold = df['return_rate_threshold'].mean()
