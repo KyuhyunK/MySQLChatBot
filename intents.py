@@ -260,8 +260,8 @@ def handle_intent(intent, st):
         df['sentiment'] = df['feedback_text'].apply(lambda text: sentiment_analyzer(text)[0]['label'])
         st.dataframe(df[['sku', 'feedback_text', 'sentiment']])
 
-    elif intent == 'analyze_return_rate':
-        df, _ = run_query("SELECT year, sku, return_rate, SUM(total_profit) as total_profit FROM aggregate_profit_data GROUP BY year, sku;")
+   elif intent == 'analyze_return_rate':
+        df = run_query("SELECT year, sku, return_rate, SUM(total_profit::numeric) as total_profit FROM aggregate_profit_data GROUP BY year, sku;")
         df['return_rate_threshold'] = df['total_profit'] / df['return_rate']
         optimal_threshold = df['return_rate_threshold'].mean()
         st.write(f"Automatically determined return rate threshold: {optimal_threshold:.2f}")
@@ -270,57 +270,42 @@ def handle_intent(intent, st):
         fig = px.scatter(df, x='return_rate', y='total_profit', color='return_rate_threshold', title='Return Rate vs Total Profit')
         st.plotly_chart(fig)
 
-        st.subheader("Sentiment Analysis on Product Feedback")
-        df['sentiment'] = df['feedback_text'].apply(lambda text: sentiment_analyzer(text)[0]['label'])
-        st.dataframe(df[['sku', 'feedback_text', 'sentiment']])
-
     elif intent == 'Compare Top Products for 2023 and 2024':
-        query_2023 = """
-            SELECT 
-                sku, 
-                SUM(profit_after_returns::numeric) AS total_profit_after_returns_2023,
-                SUM(total_ordered_items::numeric) AS total_ordered_items_2023,
-                SUM(return_items::numeric) AS return_items_2023
-            FROM 
-                aggregate_profit_data
-            WHERE 
-                year = '2023' AND quarter IN ('1', '2')
-            GROUP BY 
-                sku
-            ORDER BY 
-                total_profit_after_returns_2023 DESC
-            LIMIT 100;
-        """
-        
-        query_2024 = """
-            SELECT 
-                sku, 
-                SUM(profit_after_returns::numeric) AS total_profit_after_returns_2024,
-                SUM(total_ordered_items::numeric) AS total_ordered_items_2024,
-                SUM(return_items::numeric) AS return_items_2024
-            FROM 
-                aggregate_profit_data
-            WHERE 
-                year = '2024' AND quarter IN ('1', '2')
-            GROUP BY 
-                sku
-            ORDER BY 
-                total_profit_after_returns_2024 DESC
-            LIMIT 100;
-        """
+        if year and quarter:
+            query_template = """
+                SELECT 
+                    sku, 
+                    SUM(profit_after_returns::numeric) AS total_profit_after_returns,
+                    SUM(total_ordered_items::numeric) AS total_ordered_items,
+                    SUM(return_items::numeric) AS return_items
+                FROM 
+                    aggregate_profit_data
+                WHERE 
+                    year = '{year}' AND quarter = '{quarter}'
+                GROUP BY 
+                    sku
+                ORDER BY 
+                    total_profit_after_returns DESC
+                LIMIT 100;
+            """
 
-        df_2023, _ = run_query(query_2023)
-        df_2024, _ = run_query(query_2024)
+            query_2023 = query_template.format(year='2023', quarter=quarter)
+            query_2024 = query_template.format(year='2024', quarter=quarter)
 
-        st.write("### Top 100 SKUs for 2023")
-        st.dataframe(df_2023)
+            df_2023 = run_query(query_2023)
+            df_2024 = run_query(query_2024)
 
-        st.write("### Top 100 SKUs for 2024")
-        st.dataframe(df_2024)
+            st.write(f"### Top 100 SKUs for 2023 (Q{quarter})")
+            st.dataframe(df_2023)
 
-        st.write("### Comparison of Top 100 SKUs for 2023 and 2024")
-        fig = px.bar(df_2023, x='sku', y='total_profit_after_returns_2023', title='Top 100 SKUs for 2023')
-        st.plotly_chart(fig)
+            st.write(f"### Top 100 SKUs for 2024 (Q{quarter})")
+            st.dataframe(df_2024)
 
-        fig = px.bar(df_2024, x='sku', y='total_profit_after_returns_2024', title='Top 100 SKUs for 2024')
-        st.plotly_chart(fig)
+            st.write(f"### Comparison of Top 100 SKUs for 2023 and 2024 (Q{quarter})")
+            fig_2023 = px.bar(df_2023, x='sku', y='total_profit_after_returns', title=f'Top 100 SKUs for 2023 (Q{quarter})')
+            st.plotly_chart(fig_2023)
+
+            fig_2024 = px.bar(df_2024, x='sku', y='total_profit_after_returns', title=f'Top 100 SKUs for 2024 (Q{quarter})')
+            st.plotly_chart(fig_2024)
+        else:
+            st.write("Please specify the year and quarter in the question.")
