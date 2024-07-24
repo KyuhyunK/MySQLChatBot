@@ -176,13 +176,13 @@ intents = [
         "patterns": [
             "Compare top products for different years and quarters",
             "Show me the top products for various periods",
-            "Which products were the best over different times?"
+            "Which products were the best over different times?",
+            "compare top products", 
+            "top products 2023 and 2024"
         ],
         "responses": [
-            "Comparing the top products for 2023 and 2024 based on profit after returns, ordered items, and return items."
-        ],
-        "intent": "Compare Top Products for 2023 and 2024",
-        "patterns": ["compare top products", "top products 2023 and 2024"]
+            "Comparing the top products based on profit after returns, ordered items, and return items."
+        ]
     }
 ]
 valid_columns = [
