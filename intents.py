@@ -266,9 +266,6 @@ def generate_best_sellers_query(years, quarters):
 def handle_intent(intent, st, question):
 
     year, quarter = extract_year_and_quarter(question)
-    if not years:
-        st.write("Please specify the years in the question.")
-        return
 
     if intent == 'Get Total Revenue by SKU':
         df, _ = run_query("SELECT sku, total_revenue FROM aggregate_profit_data ORDER BY total_revenue DESC;")
