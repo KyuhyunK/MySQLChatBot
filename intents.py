@@ -174,9 +174,9 @@ intents = [
     {
         "tag": "compare_top_products",
         "patterns": [
-            "Compare top products for 2023 and 2024",
-            "Show me the top products for 2023 and 2024",
-            "Which products were the best in 2023 and 2024?"
+            "Compare top products for different years and quarters",
+            "Show me the top products for various periods",
+            "Which products were the best over different times?"
         ],
         "responses": [
             "Comparing the top products for 2023 and 2024 based on profit after returns, ordered items, and return items."
@@ -195,6 +195,73 @@ valid_columns = [
     "total_COGS", "total_fulfillment_fees", "total_return_processing_fees", "returned_items_cost",
     "cost_of_return", "total_referral_fees", "year", "quarter"
 ]
+
+def generate_best_sellers_query(years, quarters):
+    queries = []
+    performance_queries = []
+    for i in range(len(years)):
+        year = years[i]
+        quarter = quarters[i]
+
+        queries.append(f"""
+            Best_Sellers_{year}_Q{quarter} AS (
+                SELECT 
+                    sku, 
+                    SUM(profit_after_returns::numeric) AS total_profit_after_returns_{year},
+                    SUM(total_ordered_items::numeric) AS total_ordered_items_{year},
+                    SUM(return_items::numeric) AS return_items_{year}
+                FROM 
+                    aggregate_profit_data
+                WHERE 
+                    year = '{year}' AND quarter = '{quarter}'
+                GROUP BY 
+                    sku
+                ORDER BY 
+                    total_ordered_items_{year} DESC
+                LIMIT 100
+            )
+        """)
+
+        if i < len(years) - 1:
+            next_year = years[i + 1]
+            next_quarter = quarters[i + 1]
+
+            performance_queries.append(f"""
+                Performance_{year}_in_{next_year}_Q{next_quarter} AS (
+                    SELECT 
+                        s.sku, 
+                        SUM(s.profit_after_returns::numeric) AS total_profit_after_returns_{next_year},
+                        SUM(s.total_ordered_items::numeric) AS total_ordered_items_{next_year},
+                        SUM(s.return_items::numeric) AS return_items_{next_year}
+                    FROM 
+                        aggregate_profit_data s
+                    WHERE 
+                        s.year = '{next_year}' AND s.quarter = '{next_quarter}' 
+                        AND s.sku IN (SELECT sku FROM Best_Sellers_{year}_Q{quarter})
+                    GROUP BY 
+                        s.sku
+                )
+            """)
+
+    combined_query = f"""
+        WITH {', '.join(queries + performance_queries)}
+        SELECT 
+            b.sku,
+            {', '.join([f"b.total_profit_after_returns_{years[j]} AS total_profit_after_returns_{years[j]}" for j in range(len(years))])},
+            {', '.join([f"b.total_ordered_items_{years[j]} AS total_ordered_items_{years[j]}" for j in range(len(years))])},
+            {', '.join([f"b.return_items_{years[j]} AS return_items_{years[j]}" for j in range(len(years))])},
+            {', '.join([f"COALESCE(p.total_profit_after_returns_{years[j+1]}, 0) AS total_profit_after_returns_{years[j+1]}" for j in range(len(years)-1)])},
+            {', '.join([f"COALESCE(p.total_ordered_items_{years[j+1]}, 0) AS total_ordered_items_{years[j+1]}" for j in range(len(years)-1)])},
+            {', '.join([f"COALESCE(p.return_items_{years[j+1]}, 0) AS return_items_{years[j+1]}" for j in range(len(years)-1)])}
+        FROM 
+            Best_Sellers_{years[0]}_Q{quarters[0]} b
+        LEFT JOIN 
+            {', '.join([f"Performance_{years[j]}_in_{years[j+1]}_Q{quarters[j+1]} p ON b.sku = p.sku" for j in range(len(years)-1)])}
+        ORDER BY 
+            b.sku;
+    """
+
+    return combined_query
 
 def handle_intent(intent, st):
 
@@ -261,7 +328,7 @@ def handle_intent(intent, st):
         st.dataframe(df[['sku', 'feedback_text', 'sentiment']])
 
     elif intent == 'analyze_return_rate':
-        df, _ = run_query("SELECT year, sku, return_rate, SUM(profit_after_returns::numeric) as total_profit FROM aggregate_profit_data GROUP BY year, sku;")
+        df, _ = run_query("SELECT year, sku, return_rate, SUM(total_profit::numeric) as total_profit FROM aggregate_profit_data GROUP BY year, sku;")
         positive_profit_df = df[df['total_profit'] > 0]
         avg_return_rate = positive_profit_df['return_rate'].mean()
         df['return_rate_label'] = df['return_rate'].apply(lambda x: 'Below Threshold' if x < avg_return_rate else 'Above Threshold')
@@ -271,110 +338,19 @@ def handle_intent(intent, st):
         st.plotly_chart(fig)
 
 
-    elif intent == 'Compare Top Products for 2023 and 2024' and '2023' in years and '2024' in years:
-        if '1' in quarters or '2' in quarters:
-            best_sellers_query_template = """
-                WITH Best_Sellers_2023 AS (
-                    SELECT 
-                        sku, 
-                        SUM(profit_after_returns::numeric) AS total_profit_after_returns_2023,
-                        SUM(total_ordered_items::numeric) AS total_ordered_items_2023,
-                        SUM(return_items::numeric) AS return_items_2023
-                    FROM 
-                        aggregate_profit_data
-                    WHERE 
-                        year = '2023' AND quarter IN ('1', '2')
-                    GROUP BY 
-                        sku
-                    ORDER BY 
-                        total_profit_after_returns_2023 DESC
-                    LIMIT 100
-                ),
-                Performance_2023_in_2024 AS (
-                    SELECT 
-                        s.sku, 
-                        SUM(s.profit_after_returns::numeric) AS total_profit_after_returns_2024,
-                        SUM(s.total_ordered_items::numeric) AS total_ordered_items_2024,
-                        SUM(s.return_items::numeric) AS return_items_2024
-                    FROM 
-                        aggregate_profit_data s
-                    WHERE 
-                        s.year = '2024' AND s.quarter IN ('1', '2') 
-                        AND s.sku IN (SELECT sku FROM Best_Sellers_2023)
-                    GROUP BY 
-                        s.sku
-                ),
-                Best_Sellers_2024 AS (
-                    SELECT 
-                        sku, 
-                        SUM(profit_after_returns::numeric) AS total_profit_after_returns_2024,
-                        SUM(total_ordered_items::numeric) AS total_ordered_items_2024,
-                        SUM(return_items::numeric) AS return_items_2024
-                    FROM 
-                        aggregate_profit_data
-                    WHERE 
-                        year = '2024' AND quarter IN ('1', '2')
-                    GROUP BY 
-                        sku
-                    ORDER BY 
-                        total_profit_after_returns_2024 DESC
-                    LIMIT 100
-                ),
-                Performance_2024_in_2023 AS (
-                    SELECT 
-                        s.sku, 
-                        SUM(s.profit_after_returns::numeric) AS total_profit_after_returns_2023,
-                        SUM(s.total_ordered_items::numeric) AS total_ordered_items_2023,
-                        SUM(s.return_items::numeric) AS return_items_2023
-                    FROM 
-                        aggregate_profit_data s
-                    WHERE 
-                        s.year = '2023' AND s.quarter IN ('1', '2') 
-                        AND s.sku IN (SELECT sku FROM Best_Sellers_2024)
-                    GROUP BY 
-                        s.sku
-                )
-                SELECT 
-                    COALESCE(b23.sku, p23_24.sku) AS sku,
-                    b23.total_profit_after_returns_2023,
-                    b23.total_ordered_items_2023,
-                    b23.return_items_2023,
-                    p23_24.total_profit_after_returns_2024,
-                    p23_24.total_ordered_items_2024,
-                    p23_24.return_items_2024
-                FROM 
-                    Best_Sellers_2023 b23
-                LEFT JOIN 
-                    Performance_2023_in_2024 p23_24 ON b23.sku = p23_24.sku
-                UNION ALL
-                SELECT 
-                    COALESCE(b24.sku, p24_23.sku) AS sku,
-                    p24_23.total_profit_after_returns_2023,
-                    p24_23.total_ordered_items_2023,
-                    p24_23.return_items_2023,
-                    b24.total_profit_after_returns_2024,
-                    b24.total_ordered_items_2024,
-                    b24.return_items_2024
-                FROM 
-                    Best_Sellers_2024 b24
-                LEFT JOIN 
-                    Performance_2024_in_2023 p24_23 ON b24.sku = p24_23.sku
-                ORDER BY 
-                    sku;
-            """
-
-            df, _ = run_query(best_sellers_query_template)
-            st.write("### Comparison of Best Sellers of 2023 Q1 & Q2 with their performance in 2024 Q1 & Q2")
-            st.dataframe(df)
-            
-            fig = px.bar(df, x='sku', y=['total_profit_after_returns_2023', 'total_profit_after_returns_2024'], title='Profit Comparison')
-            st.plotly_chart(fig)
-            
-            fig = px.bar(df, x='sku', y=['total_ordered_items_2023', 'total_ordered_items_2024'], title='Ordered Items Comparison')
-            st.plotly_chart(fig)
-            
-            fig = px.bar(df, x='sku', y=['return_items_2023', 'return_items_2024'], title='Return Items Comparison')
-            st.plotly_chart(fig)
+     elif intent == 'compare_top_products' and len(years) >= 2 and len(quarters) <= 4:
+        query = generate_best_sellers_query(years, quarters)
+        df, _ = run_query(query)
+        st.write(f"### Comparison of Best Sellers for Specified Years and Quarters")
+        st.dataframe(df)
+        
+        for year in years:
+            for quarter in quarters:
+                if f'total_profit_after_returns_{year}' in df.columns and f'total_ordered_items_{year}' in df.columns:
+                    fig = px.bar(df, x='sku', y=[f'total_profit_after_returns_{year}', f'total_ordered_items_{year}'], title=f'Comparison for {year} Q{quarter}')
+                    st.plotly_chart(fig)
+                    fig = px.bar(df, x='sku', y=[f'return_items_{year}'], title=f'Return Items Comparison for {year} Q{quarter}')
+                    st.plotly_chart(fig)
 
     else:
         st.write("Please specify the year and quarter in the question.")
