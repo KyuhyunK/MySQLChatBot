@@ -338,7 +338,7 @@ def handle_intent(intent, st):
         st.plotly_chart(fig)
 
 
-     elif intent == 'compare_top_products' and len(years) >= 2 and len(quarters) <= 4:
+    elif intent == 'compare_top_products' and len(years) >= 2 and len(quarters) <= 4:
         query = generate_best_sellers_query(years, quarters)
         df, _ = run_query(query)
         st.write(f"### Comparison of Best Sellers for Specified Years and Quarters")
