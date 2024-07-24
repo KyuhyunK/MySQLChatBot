@@ -178,7 +178,7 @@ intents = [
             "Show me the top products for various periods",
             "Which products were the best over different times?",
             "compare top products", 
-            "top products 2023 and 2024"
+            "compare the top products of 2023 and 2024"
         ],
         "responses": [
             "Comparing the top products based on profit after returns, ordered items, and return items."
