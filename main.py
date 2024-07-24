@@ -84,7 +84,7 @@ def main():
                         break
 
                 if matched_intent:
-                    handle_intent(matched_intent, st,question)
+                    handle_intent(matched_intent, st, user_question)
                 else:
                     # Generate SQL query using OpenAI (or other method)
                     generated_sql_query = invoke_chain(user_question, valid_columns)
