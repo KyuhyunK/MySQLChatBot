@@ -263,7 +263,7 @@ def generate_best_sellers_query(years, quarters):
 
     return combined_query
 
-def handle_intent(intent, st):
+def handle_intent(intent, st, question):
 
     year, quarter = extract_year_and_quarter(question)
     if not years:
