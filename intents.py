@@ -261,7 +261,7 @@ def handle_intent(intent, st):
         st.dataframe(df[['sku', 'feedback_text', 'sentiment']])
 
     elif intent == 'analyze_return_rate':
-        df, _ = run_query("SELECT year, sku, return_rate, SUM(total_profit::numeric) as total_profit FROM aggregate_profit_data GROUP BY year, sku;")
+        df, _ = run_query("SELECT year, sku, return_rate, SUM(profit_after_returns::numeric) as total_profit FROM aggregate_profit_data GROUP BY year, sku;")
         positive_profit_df = df[df['total_profit'] > 0]
         avg_return_rate = positive_profit_df['return_rate'].mean()
         df['return_rate_label'] = df['return_rate'].apply(lambda x: 'Below Threshold' if x < avg_return_rate else 'Above Threshold')
