@@ -186,7 +186,7 @@ intents = [
     }
 ]
 valid_columns = [
-    "id", "sku", "asin", "listing_state", "cost", "quantity", "min_price", "max_price",
+     "id", "sku", "asin", "listing_state", "cost", "quantity", "min_price", "max_price",
     "listed_price", "avg_selling_price", "total_revenue", "total_revenue_prev", "total_revenue_diff",
     "total_profit", "total_profit_prev", "total_profit_diff", "total_ordered_items", "profit_margin",
     "roi", "fba_inbound_quantity", "pkg_weight", "pkg_length", "pkg_width", "pkg_height", "pkg_volume",
@@ -264,8 +264,10 @@ def generate_best_sellers_query(years, quarters):
     return combined_query
 
 def handle_intent(intent, st, question):
-
-    year, quarter = extract_year_and_quarter(question)
+    years, quarters = extract_year_and_quarter(question)
+    if not years:
+        st.write("Please specify the years in the question.")
+        return
 
     if intent == 'Get Total Revenue by SKU':
         df, _ = run_query("SELECT sku, total_revenue FROM aggregate_profit_data ORDER BY total_revenue DESC;")
@@ -298,7 +300,7 @@ def handle_intent(intent, st, question):
         st.plotly_chart(fig)
     
     elif intent == 'Calculate Average Revenue':
-        df, _ = run_query("SELECT AVG(total_revenue) as average_revenue FROM aggregate_profit_data;")
+        df, _ = run_query("SELECT AVG(total_revenue::numeric) as average_revenue FROM aggregate_profit_data;")
         st.dataframe(df)
     
     elif intent == 'Calculate Total Revenue Difference':
@@ -314,7 +316,7 @@ def handle_intent(intent, st, question):
         st.dataframe(df)
 
     elif intent == 'evaluate_products':
-        df, _ = run_query("SELECT year, sku, SUM(total_profit) as total_profit, AVG(return_rate) as return_rate, SUM(profit_after_returns) as profit_after_returns FROM aggregate_profit_data GROUP BY year, sku;")
+        df, _ = run_query("SELECT year, sku, SUM(total_profit::numeric) as total_profit, AVG(return_rate::numeric) as return_rate, SUM(profit_after_returns::numeric) as profit_after_returns FROM aggregate_profit_data GROUP BY year, sku;")
         df['profitability_score'] = df['profit_after_returns'] - (df['return_rate'] * df['total_profit'] / 100)
         threshold = df['profitability_score'].mean()
         st.write(f"Automatically determined profitability score threshold: {threshold:.2f}")
@@ -328,7 +330,7 @@ def handle_intent(intent, st, question):
         st.dataframe(df[['sku', 'feedback_text', 'sentiment']])
 
     elif intent == 'analyze_return_rate':
-        df, _ = run_query("SELECT year, sku, return_rate, SUM(total_profit::numeric) as total_profit FROM aggregate_profit_data GROUP BY year, sku;")
+        df, _ = run_query("SELECT year, sku, return_rate::numeric, SUM(total_profit::numeric) as total_profit FROM aggregate_profit_data GROUP BY year, sku;")
         positive_profit_df = df[df['total_profit'] > 0]
         avg_return_rate = positive_profit_df['return_rate'].mean()
         df['return_rate_label'] = df['return_rate'].apply(lambda x: 'Below Threshold' if x < avg_return_rate else 'Above Threshold')
@@ -337,20 +339,21 @@ def handle_intent(intent, st, question):
         fig = px.scatter(df, x='return_rate', y='total_profit', color='return_rate_label', title='Return Rate vs Total Profit')
         st.plotly_chart(fig)
 
-
-    elif intent == 'compare_top_products' and len(years) >= 2 and len(quarters) <= 4:
-        query = generate_best_sellers_query(years, quarters)
-        df, _ = run_query(query)
-        st.write(f"### Comparison of Best Sellers for Specified Years and Quarters")
-        st.dataframe(df)
-        
-        for year in years:
-            for quarter in quarters:
-                if f'total_profit_after_returns_{year}' in df.columns and f'total_ordered_items_{year}' in df.columns:
-                    fig = px.bar(df, x='sku', y=[f'total_profit_after_returns_{year}', f'total_ordered_items_{year}'], title=f'Comparison for {year} Q{quarter}')
-                    st.plotly_chart(fig)
-                    fig = px.bar(df, x='sku', y=[f'return_items_{year}'], title=f'Return Items Comparison for {year} Q{quarter}')
-                    st.plotly_chart(fig)
-
+    elif intent == 'compare_top_products':
+        if len(years) >= 2 and len(quarters) <= 4:
+            query = generate_best_sellers_query()
+            df, _ = run_query(query)
+            st.write(f"### Comparison of Best Sellers for Specified Years and Quarters")
+            st.dataframe(df)
+            
+            for year in years:
+                for quarter in quarters:
+                    if f'total_profit_after_returns_{year}' in df.columns and f'total_ordered_items_{year}' in df.columns:
+                        fig = px.bar(df, x='sku', y=[f'total_profit_after_returns_{year}', f'total_ordered_items_{year}'], title=f'Comparison for {year} Q{quarter}')
+                        st.plotly_chart(fig)
+                        fig = px.bar(df, x='sku', y=[f'return_items_{year}'], title=f'Return Items Comparison for {year} Q{quarter}')
+                        st.plotly_chart(fig)
+        else:
+            st.write("Please specify at least two years and up to four quarters in the question.")
     else:
-        st.write("Please specify the year and quarter in the question.")
+        st.write("Unsupported intent")
