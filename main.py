@@ -80,7 +80,7 @@ def main():
                 matched_intent = None
                 for intent in intents:
                     if any(pattern.lower() in user_question.lower() for pattern in intent['patterns']):
-                        matched_intent = intent
+                        matched_intent = intent['tag']
                         break
 
                 if matched_intent:
