@@ -4,13 +4,13 @@ import re
 
 
 def extract_year_and_quarter(question):
-    year_match = re.search(r'202\d+', question)
-    quarter_match = re.search(r'Q[1-4]', question)
+    year_match = re.findall(r'202\d+', question)
+    quarter_match = re.findall(r'Q[1-4]', question)
     
-    year = year_match.group(0) if year_match else None
-    quarter = quarter_match.group(0)[1] if quarter_match else None  # Extract number only
+    years = year_match if year_match else []
+    quarters = [q[1] for q in quarter_match] if quarter_match else ['1', '2', '3', '4'] 
     
-    return year, quarter
+    return years, quarters
 
 intents = [
     {
@@ -266,6 +266,9 @@ def generate_best_sellers_query(years, quarters):
 def handle_intent(intent, st):
 
     year, quarter = extract_year_and_quarter(question)
+    if not years:
+        st.write("Please specify the years in the question.")
+        return
 
     if intent == 'Get Total Revenue by SKU':
         df, _ = run_query("SELECT sku, total_revenue FROM aggregate_profit_data ORDER BY total_revenue DESC;")
