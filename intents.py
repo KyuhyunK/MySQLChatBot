@@ -207,9 +207,9 @@ def generate_best_sellers_query(years, quarters):
             Best_Sellers_{year}_Q{quarter} AS (
                 SELECT 
                     sku, 
-                    SUM(profit_after_returns::numeric) AS total_profit_after_returns_{year},
-                    SUM(total_ordered_items::numeric) AS total_ordered_items_{year},
-                    SUM(return_items::numeric) AS return_items_{year}
+                    SUM(profit_after_returns) AS total_profit_after_returns_{year},
+                    SUM(total_ordered_items) AS total_ordered_items_{year},
+                    SUM(return_items) AS return_items_{year}
                 FROM 
                     aggregate_profit_data
                 WHERE 
@@ -230,9 +230,9 @@ def generate_best_sellers_query(years, quarters):
                 Performance_{year}_in_{next_year}_Q{next_quarter} AS (
                     SELECT 
                         s.sku, 
-                        SUM(s.profit_after_returns::numeric) AS total_profit_after_returns_{next_year},
-                        SUM(s.total_ordered_items::numeric) AS total_ordered_items_{next_year},
-                        SUM(s.return_items::numeric) AS return_items_{next_year}
+                        SUM(s.profit_after_returns) AS total_profit_after_returns_{next_year},
+                        SUM(s.total_ordered_items) AS total_ordered_items_{next_year},
+                        SUM(s.return_items) AS return_items_{next_year}
                     FROM 
                         aggregate_profit_data s
                     WHERE 
@@ -300,7 +300,7 @@ def handle_intent(intent, st, question):
         st.plotly_chart(fig)
     
     elif intent == 'Calculate Average Revenue':
-        df, _ = run_query("SELECT AVG(total_revenue::numeric) as average_revenue FROM aggregate_profit_data;")
+        df, _ = run_query("SELECT AVG(total_revenue) as average_revenue FROM aggregate_profit_data;")
         st.dataframe(df)
     
     elif intent == 'Calculate Total Revenue Difference':
@@ -316,7 +316,7 @@ def handle_intent(intent, st, question):
         st.dataframe(df)
 
     elif intent == 'evaluate_products':
-        df, _ = run_query("SELECT year, sku, SUM(total_profit::numeric) as total_profit, AVG(return_rate::numeric) as return_rate, SUM(profit_after_returns::numeric) as profit_after_returns FROM aggregate_profit_data GROUP BY year, sku;")
+        df, _ = run_query("SELECT year, sku, SUM(total_profit) as total_profit, AVG(return_rate) as return_rate, SUM(profit_after_returns) as profit_after_returns FROM aggregate_profit_data GROUP BY year, sku;")
         df['profitability_score'] = df['profit_after_returns'] - (df['return_rate'] * df['total_profit'] / 100)
         threshold = df['profitability_score'].mean()
         st.write(f"Automatically determined profitability score threshold: {threshold:.2f}")
@@ -334,11 +334,11 @@ def handle_intent(intent, st, question):
             WITH profitability_data AS (
                 SELECT 
                     sku, 
-                    CASE WHEN SUM(total_ordered_items::numeric) != 0 
-                        THEN (SUM(return_items::numeric) * 100.0 / SUM(total_ordered_items::numeric)) 
+                    CASE WHEN SUM(total_ordered_items) != 0 
+                        THEN (SUM(return_items) * 100.0 / SUM(total_ordered_items)) 
                         ELSE 0 
                     END AS return_rate,
-                    SUM(profit_after_returns::numeric) AS total_profit
+                    SUM(profit_after_returns) AS total_profit
                 FROM 
                     aggregate_profit_data
                 GROUP BY 
