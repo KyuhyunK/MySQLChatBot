@@ -31,10 +31,6 @@ def invoke_chain(user_question, valid_columns):
 def cached_run_query(query):
     return run_query(query)
 
-def adjust_query(query):
-    query = re.sub(r'SUM\(([^)]+)\)', r'SUM(CAST(\1 AS numeric))', query)
-    return query
-
 def remove_backticks(query):
     # Remove any backticks from the query string
     return query.replace('`', '')
