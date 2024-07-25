@@ -359,7 +359,7 @@ def handle_intent(intent, st, question):
             FROM 
                 profitability_data
             ORDER BY 
-                total_profit DESC;
+                return_rate DESC;
         """)
         st.dataframe(df)
         fig = px.scatter(df, x='return_rate', y='total_profit', color='profitability_status', symbol='return_rate_status', title='Return Rate vs Total Profit')

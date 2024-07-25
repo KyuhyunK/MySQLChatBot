@@ -41,7 +41,7 @@ def invoke_openai_response(prompt):
 
 
 def validate_sql_columns(sql_query, valid_columns):
-    sql_keywords = {'SELECT', 'AS', 'FROM', 'WHERE', 'GROUP', 'BY', 'ORDER', 'DESC', 'LIMIT', 'SUM', 'AVG', 'COUNT', 'WITH', 'LEFT', 'JOIN', 'ON', 'COALESCE', 'WITH'}
+    sql_keywords = {'SELECT', 'AS', 'FROM', 'WHERE', 'GROUP', 'BY', 'ORDER', 'DESC', 'LIMIT', 'SUM', 'AVG', 'COUNT', 'WITH', 'LEFT', 'JOIN', 'ON', 'COALESCE', 'WITH', 'CASE'}
     sql_query_columns = [word.strip('`,') for word in sql_query.split() if word.strip('`,').isalpha() and word.upper() not in sql_keywords]
 
     corrected_query = sql_query
