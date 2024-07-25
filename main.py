@@ -160,6 +160,6 @@ st.write("What are the top 5 ASINs by total ordered items?")
 st.write("Can you create a graph that shows the difference in revenue by listing state?")
 
 
-st.write("/n Example Analysis:")
+st.write("\n Example Analysis:")
 st.write("Show me profit after return, ordered items, and sku, and returned items of the top 100 products in 2023 and compare them with how the same products did in 2024.")
 st.write("Write a SQL query to calculate the return rate and total profit after returns for each SKU, then classify each SKU as 'Profitable' or 'Unprofitable' based on whether the total profit is greater than zero, and as 'Low Return Rate' or 'High Return Rate' based on whether the return rate is below or above the average return rate across all SKUs, and finally display the results with columns for SKU, return rate, total profit, profitability status, and return rate status.")
