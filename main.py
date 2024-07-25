@@ -22,6 +22,7 @@ def invoke_chain(user_question, valid_columns):
         f"The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. "
         f"Ensure the query includes the table name and the 'FROM' keyword. "
         f"Use only valid columns from the following list: {', '.join(valid_columns)}. "
+        f"All columns are of type TEXT, so ensure numbers are enclosed in quotes in the query to handle them as text."
     )
     generated_sql_query = invoke_openai_sql(sql_query_prompt)
     corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)
@@ -82,10 +83,9 @@ def main():
                 else:
                     # Generate SQL query using OpenAI (or other method)
                     generated_sql_query = invoke_chain(user_question, valid_columns)
-                    adjusted_sql_query = adjust_query(generated_sql_query)
 
                     # Remove backticks from the generated SQL query
-                    adjusted_sql_query = remove_backticks(adjusted_sql_query)
+                    adjusted_sql_query = remove_backticks(generated_sql_query)
                     
                     # Split the query and description if present
                     final_query, query_description = split_query_and_description(adjusted_sql_query)
@@ -153,7 +153,8 @@ st.write("Can you show me the quarterly revenue trend?")
 st.write("What are the top 5 ASINs by total ordered items?")
 st.write("Can you create a graph that shows the difference in revenue by listing state?")
 
-st.write("")
+st.write("
+")
 st.write("Example Analysis:")
 st.write("Show me profit after return, ordered items, and sku, and returned items of the top 100 products in 2023 and compare them with how the same products did in 2024.")
 st.write("Write a SQL query to calculate the return rate and total profit after returns for each SKU, then classify each SKU as 'Profitable' or 'Unprofitable' based on whether the total profit is greater than zero, and as 'Low Return Rate' or 'High Return Rate' based on whether the return rate is below or above the average return rate across all SKUs, and finally display the results with columns for SKU, return rate, total profit, profitability status, and return rate status.")
