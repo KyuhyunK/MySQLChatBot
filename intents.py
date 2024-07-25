@@ -330,14 +330,41 @@ def handle_intent(intent, st, question):
         st.dataframe(df[['sku', 'feedback_text', 'sentiment']])
 
     elif intent == 'analyze_return_rate':
-        df, _ = run_query("SELECT year, sku, return_rate::numeric, SUM(total_profit::numeric) as total_profit FROM aggregate_profit_data GROUP BY year, sku;")
-        positive_profit_df = df[df['total_profit'] > 0]
-        avg_return_rate = positive_profit_df['return_rate'].mean()
-        df['return_rate_label'] = df['return_rate'].apply(lambda x: 'Below Threshold' if x < avg_return_rate else 'Above Threshold')
-        st.write(f"Automatically determined average return rate threshold: {avg_return_rate:.2f}")
+        df, _ = run_query("""
+            WITH profitability_data AS (
+                SELECT 
+                    sku, 
+                    CASE WHEN SUM(total_ordered_items::numeric) != 0 
+                        THEN (SUM(return_items::numeric) * 100.0 / SUM(total_ordered_items::numeric)) 
+                        ELSE 0 
+                    END AS return_rate,
+                    SUM(profit_after_returns::numeric) AS total_profit
+                FROM 
+                    aggregate_profit_data
+                GROUP BY 
+                    sku
+            )
+            SELECT 
+                sku,
+                return_rate,
+                total_profit,
+                CASE
+                    WHEN total_profit > 0 THEN 'Profitable'
+                    ELSE 'Unprofitable'
+                END AS profitability_status,
+                CASE
+                    WHEN return_rate < (SELECT AVG(return_rate) FROM profitability_data) THEN 'Low Return Rate'
+                    ELSE 'High Return Rate'
+                END AS return_rate_status
+            FROM 
+                profitability_data
+            ORDER BY 
+                total_profit DESC;
+        """)
         st.dataframe(df)
-        fig = px.scatter(df, x='return_rate', y='total_profit', color='return_rate_label', title='Return Rate vs Total Profit')
+        fig = px.scatter(df, x='return_rate', y='total_profit', color='profitability_status', symbol='return_rate_status', title='Return Rate vs Total Profit')
         st.plotly_chart(fig)
+
 
     elif intent == 'compare_top_products':
         if len(years) >= 2 and len(quarters) <= 4:
