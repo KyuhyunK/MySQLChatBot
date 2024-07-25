@@ -213,7 +213,7 @@ def generate_best_sellers_query(years, quarters):
                 FROM 
                     aggregate_profit_data
                 WHERE 
-                    year = '{year}' AND quarter = '{quarter}'
+                    year = {year} AND quarter = {quarter}
                 GROUP BY 
                     sku
                 ORDER BY 
@@ -236,7 +236,7 @@ def generate_best_sellers_query(years, quarters):
                     FROM 
                         aggregate_profit_data s
                     WHERE 
-                        s.year = '{next_year}' AND s.quarter = '{next_quarter}' 
+                        s.year = {next_year} AND s.quarter = {next_quarter} 
                         AND s.sku IN (SELECT sku FROM Best_Sellers_{year}_Q{quarter})
                     GROUP BY 
                         s.sku
