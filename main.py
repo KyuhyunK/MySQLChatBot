@@ -73,9 +73,10 @@ def main():
             if user_question:
                 matched_intent = None
                 for intent in intents:
-                    if re.search(pattern, user_question, re.IGNORECASE):
-                        matched_intent = intent['tag']
-                        break
+		    for pattern in intent['patterns']:
+                        if re.search(pattern, user_question, re.IGNORECASE):
+                            matched_intent = intent['tag']
+                            break
 
                 if matched_intent:
                     handle_intent(matched_intent, st, user_question)
