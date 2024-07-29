@@ -134,9 +134,9 @@ def create_plotly_graph(df, graph_type, x_col, y_col, title):
 
 def determine_graph_type(df):
     if len(df.columns) == 2:
-         if 'revenue' in df.columns[1].lower() or 'profit' in df.columns[1].lower():
+        if 'revenue' in df.columns[1].lower() or 'profit' in df.columns[1].lower():
             return 'bar'
-        elif df.columns[1].endswith('year') or df.columns[1].endswith('quarter'):
+        elif 'year' in df.columns[1].lower() or 'quarter' in df.columns[1].lower():
             return 'line'
         else:
             return 'scatter'
