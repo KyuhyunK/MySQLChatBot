@@ -22,6 +22,7 @@ def invoke_chain(user_question, valid_columns):
         f"The default table name is 'aggregate_profit_data', unless specified otherwise use this table name. "
         f"Ensure the query includes the table name and the 'FROM' keyword. "
         f"Use only valid columns from the following list: {', '.join(valid_columns)}. "
+        f"All columns are of type TEXT, so ensure numbers are enclosed in quotes in the query to handle them as text."
     )
     generated_sql_query = invoke_openai_sql(sql_query_prompt)
     corrected_sql_query = validate_sql_columns(generated_sql_query, valid_columns)
@@ -73,12 +74,9 @@ def main():
             if user_question:
                 matched_intent = None
                 for intent in intents:
-                    for pattern in intent['patterns']:
-                        if re.search(pattern, user_question, re.IGNORECASE):
-                            matched_intent = intent['tag']
-                            break
-                    if matched_intent:
-                        break  # Exit outer loop once a match is found
+                    if any(pattern.lower() in user_question.lower() for pattern in intent['patterns']):
+                        matched_intent = intent['tag']
+                        break
 
                 if matched_intent:
                     handle_intent(matched_intent, st, user_question)
@@ -136,9 +134,9 @@ def create_plotly_graph(df, graph_type, x_col, y_col, title):
 
 def determine_graph_type(df):
     if len(df.columns) == 2:
-        if df.columns[1].endswith('_revenue') or df.columns[1].endswith('_profit'):
+         if 'revenue' in df.columns[1].lower() or 'profit' in df.columns[1].lower():
             return 'bar'
-        elif df.columns[1].endswith('_trend'):
+        elif df.columns[1].endswith('year') or df.columns[1].endswith('quarter'):
             return 'line'
         else:
             return 'scatter'
