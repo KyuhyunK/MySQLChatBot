@@ -325,10 +325,6 @@ def handle_intent(intent, st, question):
         fig = px.scatter(df, x='return_rate', y='profit_after_returns', color='profitability_score', title='Return Rate vs Profit After Returns')
         st.plotly_chart(fig)
 
-        st.subheader("Sentiment Analysis on Product Feedback")
-        df['sentiment'] = df['feedback_text'].apply(lambda text: sentiment_analyzer(text)[0]['label'])
-        st.dataframe(df[['sku', 'feedback_text', 'sentiment']])
-
     elif intent == 'analyze_return_rate':
         df, _ = run_query("""
             WITH profitability_data AS (
@@ -365,10 +361,9 @@ def handle_intent(intent, st, question):
         fig = px.scatter(df, x='return_rate', y='total_profit', color='profitability_status', symbol='return_rate_status', title='Return Rate vs Total Profit')
         st.plotly_chart(fig)
 
-
     elif intent == 'compare_top_products':
         if len(years) >= 2 and len(quarters) <= 4:
-            query = generate_best_sellers_query()
+            query = generate_best_sellers_query(years, quarters)
             df, _ = run_query(query)
             st.write(f"### Comparison of Best Sellers for Specified Years and Quarters")
             st.dataframe(df)
@@ -384,3 +379,4 @@ def handle_intent(intent, st, question):
             st.write("Please specify at least two years and up to four quarters in the question.")
     else:
         st.write("Unsupported intent")
+
