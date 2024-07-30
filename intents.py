@@ -196,7 +196,7 @@ valid_columns = [
     "cost_of_return", "total_referral_fees", "year", "quarter"
 ]
 
-def generate_best_sellers_query(years, quarters):
+def generate_dynamic_query(years, quarters, columns):
     queries = []
     performance_queries = []
     for i in range(len(years)):
@@ -207,9 +207,7 @@ def generate_best_sellers_query(years, quarters):
             Best_Sellers_{year}_Q{quarter} AS (
                 SELECT 
                     sku, 
-                    SUM(profit_after_returns) AS total_profit_after_returns_{year},
-                    SUM(total_ordered_items) AS total_ordered_items_{year},
-                    SUM(return_items) AS return_items_{year}
+                    {', '.join([f'SUM({col}) AS {col}_{year}' for col in columns])}
                 FROM 
                     aggregate_profit_data
                 WHERE 
@@ -230,9 +228,7 @@ def generate_best_sellers_query(years, quarters):
                 Performance_{year}_in_{next_year}_Q{next_quarter} AS (
                     SELECT 
                         s.sku, 
-                        SUM(s.profit_after_returns) AS total_profit_after_returns_{next_year},
-                        SUM(s.total_ordered_items) AS total_ordered_items_{next_year},
-                        SUM(s.return_items) AS return_items_{next_year}
+                        {', '.join([f'SUM(s.{col}) AS {col}_{next_year}' for col in columns])}
                     FROM 
                         aggregate_profit_data s
                     WHERE 
@@ -247,12 +243,8 @@ def generate_best_sellers_query(years, quarters):
         WITH {', '.join(queries + performance_queries)}
         SELECT 
             b.sku,
-            {', '.join([f"b.total_profit_after_returns_{years[j]} AS total_profit_after_returns_{years[j]}" for j in range(len(years))])},
-            {', '.join([f"b.total_ordered_items_{years[j]} AS total_ordered_items_{years[j]}" for j in range(len(years))])},
-            {', '.join([f"b.return_items_{years[j]} AS return_items_{years[j]}" for j in range(len(years))])},
-            {', '.join([f"COALESCE(p.total_profit_after_returns_{years[j+1]}, 0) AS total_profit_after_returns_{years[j+1]}" for j in range(len(years)-1)])},
-            {', '.join([f"COALESCE(p.total_ordered_items_{years[j+1]}, 0) AS total_ordered_items_{years[j+1]}" for j in range(len(years)-1)])},
-            {', '.join([f"COALESCE(p.return_items_{years[j+1]}, 0) AS return_items_{years[j+1]}" for j in range(len(years)-1)])}
+            {', '.join([f"b.{col}_{years[j]}" for j in range(len(years)) for col in columns])},
+            {', '.join([f"COALESCE(p.{col}_{years[j+1]}, 0) AS {col}_{years[j+1]}" for j in range(len(years)-1) for col in columns])}
         FROM 
             Best_Sellers_{years[0]}_Q{quarters[0]} b
         LEFT JOIN 
@@ -262,6 +254,7 @@ def generate_best_sellers_query(years, quarters):
     """
 
     return combined_query
+
 
 def handle_intent(intent, st, question):
     years, quarters = extract_year_and_quarter(question)
