@@ -138,7 +138,7 @@ def determine_graph_type(df):
     if len(df.columns) == 2:
         if df.columns[1].endswith('_revenue') or df.columns[1].endswith('_profit'):
             return 'bar'
-        elif df.columns[1].endswith('_trend'):
+        elif 'year' in df.columns[1].lower() or 'quarter' in df.columns[1].lower():
             return 'line'
         else:
             return 'scatter'

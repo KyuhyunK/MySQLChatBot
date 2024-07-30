@@ -196,7 +196,7 @@ valid_columns = [
     "cost_of_return", "total_referral_fees", "year", "quarter"
 ]
 
-def generate_dynamic_query(years, quarters, columns):
+def generate_best_sellers_query(years, quarters, columns):
     queries = []
     performance_queries = []
     for i in range(len(years)):
@@ -215,7 +215,7 @@ def generate_dynamic_query(years, quarters, columns):
                 GROUP BY 
                     sku
                 ORDER BY 
-                    total_ordered_items_{year} DESC
+                    profit_after_returns_{year} DESC
                 LIMIT 100
             )
         """)
